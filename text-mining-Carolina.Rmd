@@ -51,32 +51,25 @@ install.packages("devtools")
 devtools::install_github("bradleyboehmke/harrypotter")
 ```
 
+
+#Data cleaning:
+
+
 ```{r}
 library(tidytext)
 library(dplyr)
 library(stringr)
 library(harrypotter)
+library(ggplot2)
+library(tidyr)
 ```
 
-
-
-
-**Questions:**
-(1) How does sentiment change across the entire book?
-(2) WHat are the most common words by chapter?
-(3) Which characters are mentioned the most? 
-(4) How does the emotion "anticipation" change throughtout the book?
-(5) What is the word count for each book? 
-
-If I were to start a book club with 10 of my friends who have not read or watch the movies of the Harry Potter Saga, what book should we begin reading? 
-
-**Data cleaning:**
 
 Do it first for one book: 
 ```{r}
 # Create tibble
 data <- tibble(text = half_blood_prince) # column of text
-data <- mutate(data, name = "Half Blood Prince")# define a new column for book name
+data <- mutate(data, book = "Half Blood Prince")# define a new column for book name
 data <- mutate(data, chapter = c(1:nrow(data))) # define a new column for chapter number
 
 head(data)
@@ -110,6 +103,187 @@ for (i in seq_along(titles)) { # create a tibble for each book
 }
 
 saga
+
+```
+
+# Book 2: Chamber of Secrets
+
+```{r}
+book2 <- saga %>%
+  filter(book=="Chamber of Secrets")
+```
+
+## Group questions: 
+
+(1) What is the word count of the book?   
+```{r}
+nrow(book2)
+```
+
+(2) What is the word count of each chapter?
+```{r}
+book2 %>%
+  group_by(chapter) %>%
+  count()
+```
+
+(2) What are the most common words by chapter?
+```{r}
+book2 %>% 
+  # Use count to find out how many times each word is used
+  count(word, sort = TRUE)
+```
+
+**find common words that don't include articles**
+
+(3) How does sentiment change across the entire book?
+```{r}
+count <- book2 %>%
+  inner_join(get_sentiments("bing")) %>%  # use bing lexicon to examine sentiment
+  group_by(chapter,sentiment) %>%
+  count(chapter,sentiment) 
+
+sentiment_prop <- count %>%
+  group_by(chapter) %>%
+  mutate(total_words=sum(n), prop=n/total_words)
+  
+# Plot 
+ggplot(sentiment_prop, aes(x = chapter, y = prop, col = as.factor(sentiment))) +
+  geom_line()
+```
+
+
+
+
+
+```{r}
+book2 %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(chapter, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative) %>%
+  # Put index on x-axis, sentiment on y-axis, and map comedy/tragedy to fill
+  ggplot(aes(x=chapter, y=sentiment)) +
+  # Make a bar chart with geom_col()
+  geom_line() +
+  # Separate panels for each title with facet_wrap()
+  facet_wrap(~ chapter, scales = "free_x")
+```
+
+
+
+
+```{r}
+book2 %>%
+  inner_join(get_sentiments("bing"))  %>% # Implement sentiment analysis with the "bing" lexicon
+  group_by(chapter) %>%
+  count(sentiment) #%>%
+  #filter(sentiment=="negative") %>%
+  #arrange(desc(n))
+
+
+```
+
+(4) Which characters are mentioned the most?
+
+
+
+
+## Individual questions: 
+
+How many times is each word used in the book?
+```{r}
+
+```
+
+
+
+
+If I were to start a book club with 10 of my friends who have not read or watch the movies of the Harry Potter Saga, what book should we begin reading? 
+
+
+Find the percentage of negative words for each chapter.
+```{r}
+sentiment_counts <- book2 %>%
+    # Implement sentiment analysis using the "bing" lexicon
+    inner_join(get_sentiments("bing")) %>%
+    # Count the number of words by title, type, and sentiment
+    count(chapter, sentiment)
+
+sentiment_counts %>%
+    # Group by the chapter number
+    group_by(chapter) %>%
+    # Find the total number of words in each chapter
+    mutate(total = sum(n),
+    # Calculate the number of words divided by the total
+           percent = n/total) %>%
+    # Filter the results for only negative sentiment
+    filter(sentiment=="negative") %>%
+    arrange(desc(percent))
+```
+
+
+Find the percentage of positive words for each chapter.
+```{r}
+sentiment_counts <- book2 %>%
+    # Implement sentiment analysis using the "bing" lexicon
+    inner_join(get_sentiments("bing")) %>%
+    # Count the number of words by title, type, and sentiment
+    count(chapter, sentiment)
+
+sentiment_counts %>%
+    # Group by the chapter number
+    group_by(chapter) %>%
+    # Find the total number of words in each chapter
+    mutate(total = sum(n),
+    # Calculate the number of words divided by the total
+           percent = n/total) %>%
+    # Filter the results for only negative sentiment
+    filter(sentiment=="positive") %>%
+    arrange(desc(percent))
+```
+
+
+Calculate net sentiment: 
+```{r}
+library(tidyr)
+
+book2 %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(chapter, sentiment) %>%
+  # Spread sentiment and n across multiple columns
+  spread(sentiment, n, fill = 0) %>%
+  # Use mutate to find net sentiment
+  mutate(sentiment = positive-negative)
+
+```
+
+
+```{r}
+book2 %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(chapter, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative) %>%
+  # Put index on x-axis, sentiment on y-axis, and map comedy/tragedy to fill
+  ggplot(aes(x=chapter, y=sentiment, fill=type)) +
+  # Make a bar chart with geom_col()
+  geom_col() +
+  # Separate panels for each title with facet_wrap()
+  facet_wrap(~ title, scales = "free_x")
+```
+
+
+(4) Which characters are mentioned the most? 
+```{r}
+
+```
+
+
+
+
+(5) How does the emotion "anticipation" change throughtout the book?
+```{r}
 
 ```
 
