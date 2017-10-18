@@ -114,5 +114,7 @@ scores <- afinn %>%
   summarize(score = sum(score))
 
 ggplot(scores, aes(x = chapter, y = score)) +
-  geom_line()
+  geom_hline(yintercept = 0, col = "red") +
+  geom_line() +
+  scale_y_continuous(limits = c(-220, 220))
 ```
