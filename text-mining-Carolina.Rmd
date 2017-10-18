@@ -1,0 +1,119 @@
+---
+title: "Text Analyis"
+output: github_document
+---
+
+
+
+
+# Your mission
+
+Perform text analysis.
+
+## Okay, I need more information
+
+Perform sentiment analysis or topic modeling using text analysis methods as demonstrated in the pre-class work and in the readings.
+
+## Okay, I need even more information.
+
+Do the above. Can't think of a data source?
+
+- `gutenbergr`
+- `AssociatedPress` from the `topicmodels` package
+- `NYTimes` or `USCongress` from the `RTextTools` package
+- Harry Potter Complete 7 Books text
+    ```
+    if (packageVersion("devtools") < 1.6) {
+  install.packages("devtools")
+}
+
+devtools::install_github("bradleyboehmke/harrypotter")
+    ```
+- [State of the Union speeches](https://pradeepadhokshaja.wordpress.com/2017/03/31/scraping-the-web-for-presdential-inaugural-addresses-using-rvest/)
+- Scrape tweets using [`twitteR`](https://www.credera.com/blog/business-intelligence/twitter-analytics-using-r-part-1-extract-tweets/)
+
+Analyze the text for sentiment OR topic. **You do not need to do both**. The datacamp courses and [Tidy Text Mining with R](http://tidytextmining.com/) are good starting points for templates to perform this type of analysis, but feel free to *expand beyond these examples*.
+
+# Timelines and Task
+
+
+We will spend the next 2 weeks working on analyzing textual data in R. You will do the following:
+
+- Start with some text based data.
+- Clean data and prepare it for analysis
+- Ask questions about the data
+- Answer these questions with the data using tables and graphics
+- Each group member must have their own unique question that they code the answer for. 
+
+
+```{r}
+install.packages("devtools")
+devtools::install_github("bradleyboehmke/harrypotter")
+```
+
+```{r}
+library(tidytext)
+library(dplyr)
+library(stringr)
+library(harrypotter)
+```
+
+
+
+
+**Questions:**
+(1) How does sentiment change across the entire book?
+(2) WHat are the most common words by chapter?
+(3) Which characters are mentioned the most? 
+(4) How does the emotion "anticipation" change throughtout the book?
+(5) What is the word count for each book? 
+
+If I were to start a book club with 10 of my friends who have not read or watch the movies of the Harry Potter Saga, what book should we begin reading? 
+
+**Data cleaning:**
+
+Do it first for one book: 
+```{r}
+# Create tibble
+data <- tibble(text = half_blood_prince) # column of text
+data <- mutate(data, name = "Half Blood Prince")# define a new column for book name
+data <- mutate(data, chapter = c(1:nrow(data))) # define a new column for chapter number
+
+head(data)
+
+data %>%
+  unnest_tokens(word, text) # Transform the non-tidy text data to tidy text data
+```
+
+
+Generalize this to all books to get dataset of the saga:
+```{r}
+titles <- c("Philosopher's Stone", "Chamber of Secrets", "Prisoner of Azkaban",
+            "Goblet of Fire", "Order of the Phoenix", "Half-Blood Prince",
+            "Deathly Hallows")
+
+books <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban,
+           goblet_of_fire, order_of_the_phoenix, half_blood_prince,
+           deathly_hallows)
+
+saga <- tibble()
+
+for (i in seq_along(titles)) { # create a tibble for each book
+  data <- tibble(text = books[[i]]) %>% # add text
+    mutate(book = titles[i]) %>% # define a new column for book name
+    mutate(chapter = seq_along(books[[i]])) %>% # define a new column for chapter number
+    group_by(book) %>% # group by book title
+    unnest_tokens(word, text) %>%  # Transform the non-tidy text data to tidy text data
+    ungroup()
+  
+  saga <- rbind(saga, data) # bind rows of tibble of each book
+}
+
+saga
+
+```
+
+
+
+
+
