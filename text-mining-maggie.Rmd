@@ -61,8 +61,9 @@ QUESTIONS:
 
 
 ```{r}
-library(plyr)
 library(dplyr)
+devtools::install_github("bradleyboehmke/harrypotter")
+library(harrypotter)
 library(tidytext)
 library(stringr)
 library(ggplot2)
@@ -86,9 +87,11 @@ for(i in 1:length(books)){
 }
 
 # make one data frame from list of data frames
-books <- ldply(books, data.frame)
+books <- plyr::ldply(books, data.frame)
 ```
 
+
+# book 7
 ```{r}
 count(books, word, sort = TRUE)
 
@@ -101,15 +104,15 @@ percents <- count(bing, title, chapter, sentiment) %>%
 
 ggplot(percents, aes(x = chapter, y = percent, col = as.factor(sentiment))) +
   geom_line()
+```
 
-
-afinn <- inner_join(data, get_sentiments("afinn"))
-scores <- group_by(afinn, chapter) %>%
-  summarize(score= sum(score))
+```{r}
+my_book <- filter(books, title == "deathly_hallows")
+afinn <- inner_join(my_book, get_sentiments("afinn"), by = "word")
+scores <- afinn %>%
+  group_by(chapter) %>%
+  summarize(score = sum(score))
 
 ggplot(scores, aes(x = chapter, y = score)) +
-  geom_line() +
   geom_line()
-
-
 ```
