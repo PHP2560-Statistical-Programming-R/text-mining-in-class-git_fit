@@ -61,15 +61,29 @@ QUESTIONS:
 
 
 ```{r}
+library(plyr)
 library(dplyr)
 library(tidytext)
 library(stringr)
 library(ggplot2)
 
 
+book_names <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban, goblet_of_fire, order_of_the_phoenix, half_blood_prince, deathly_hallows)
+names(book_names) <- c("philosophers_stone", "chamber_of_secrets", "prisoner_of_azkaban", "goblet_of_fire", "order_of_the_phoenix", "half_blood_prince", "deathly_hallows")
 
-data <- data_frame(text = chamber_of_secrets) 
-data <- mutate(data, chapter = c(1:nrow(data)))
+books = vector(mode = "list", length = 7)
+for(i in 1:length(books)){
+  data <- data_frame(text = book_names[[i]])
+  data <- mutate(data, chapter = c(1:nrow(data)), title = names(book_names)[i])
+  data <- data %>%
+    unnest_tokens(word, text, to_lower = TRUE)
+  books[[i]] <- data
+}
+
+books <- ldply(books, data.frame)
+
+data <- data_frame(text = chamber_of_secrets)
+data <- mutate(data, chapter = c(1:nrow(data)), title = "chamber_of_secrets")
 data <- data %>%
   unnest_tokens(word, text, to_lower = TRUE)
 
@@ -91,6 +105,7 @@ scores <- group_by(afinn, chapter) %>%
   summarize(score= sum(score))
 
 ggplot(scores, aes(x = chapter, y = score)) +
+  geom_line() +
   geom_line()
 
 
