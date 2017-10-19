@@ -22,18 +22,30 @@ Do the above. Can't think of a data source?
 - `AssociatedPress` from the `topicmodels` package
 - `NYTimes` or `USCongress` from the `RTextTools` package
 - Harry Potter Complete 7 Books text
-
-```{r, message=FALSE, warning=TRUE}
-if (packageVersion("devtools") < 1.6) {
+    ```
+    if (packageVersion("devtools") < 1.6) {
   install.packages("devtools")
 }
 
 devtools::install_github("bradleyboehmke/harrypotter")
-
-library(harrypotter)
-```
+    ```
 - [State of the Union speeches](https://pradeepadhokshaja.wordpress.com/2017/03/31/scraping-the-web-for-presdential-inaugural-addresses-using-rvest/)
 - Scrape tweets using [`twitteR`](https://www.credera.com/blog/business-intelligence/twitter-analytics-using-r-part-1-extract-tweets/)
+
+```{r}
+install.packages("devtools")
+devtools::install_github("bradleyboehmke/harrypotter")
+```
+
+```{r}
+library(harrypotter)
+?harrypotter
+#How the sentiment changes across the entire book
+#What are the most common words by chapter
+#Which characters appear the most 
+#How the emotion anticipation changes throughtout the book
+#Word count for each book
+```
 
 Analyze the text for sentiment OR topic. **You do not need to do both**. The datacamp courses and [Tidy Text Mining with R](http://tidytextmining.com/) are good starting points for templates to perform this type of analysis, but feel free to *expand beyond these examples*.
 
@@ -44,77 +56,53 @@ We will spend the next 2 weeks working on analyzing textual data in R. You will 
 
 - Start with some text based data.
 - Clean data and prepare it for analysis
+```{r}
+library(tidytext)
+library(plyr)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+#clean the data
+#make a list of book names
+book_names <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban, goblet_of_fire, order_of_the_phoenix, half_blood_prince, deathly_hallows)
+#concatenate a vector of names
+names(book_names) <- c("philosophers_stone", "chamber_of_secrets", "prisoner_of_azkaban", "goblet_of_fire", "order_of_the_phoenix", "half_blood_prince", "deathly_hallows")
+
+books = vector(mode = "list", length = 7)
+#create a for loop to go through the chapters of the books and unnest the text into words
+for(i in 1:length(books)){
+  data <- data_frame(text = book_names[[i]])
+  data <- mutate(data, chapter = c(1:nrow(data)), title = names(book_names)[i])
+  data <- data %>%
+    unnest_tokens(word, text, to_lower = TRUE)
+  books[[i]] <- data
+}
+#new dataset books
+books <- ldply(books, data.frame)
+```
+
 - Ask questions about the data
+```{r}
+#word count for each book
+books%>%
+  filter(title == "philosophers_stone")%>%
+  group_by(chapter)%>%
+  count()
+  
+```
+```{r}
+#most common words by chapter
+```
+
+```{r}
+books%>%
+inner_join(get_sentiments("bing"))%>%
+group_by(chapter)%>%
+count(sentiment)%>%
+filter(sentiment=="positive")
+
+```
+
 - Answer these questions with the data using tables and graphics
 - Each group member must have their own unique question that they code the answer for. 
 
-
-
-QUESTIONS:
-- How sentiment changes across chapters
-- Most common words
-- Common characters
-- Tracking anticipation
-- Word count
-
-
-
-
-```{r}
-library(dplyr)
-devtools::install_github("bradleyboehmke/harrypotter")
-library(harrypotter)
-library(tidytext)
-library(stringr)
-library(ggplot2)
-
-# create vector of book names
-book_names <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban, goblet_of_fire, order_of_the_phoenix, half_blood_prince, deathly_hallows)
-names(book_names) <- c("philosophers_stone", "chamber_of_secrets", "prisoner_of_azkaban", "goblet_of_fire", "order_of_the_phoenix", "half_blood_prince", "deathly_hallows")
-
-# clean data
-books = vector(mode = "list", length = 7)
-for(i in 1:length(books)){
-  # convert text to dataframe
-  data <- data_frame(text = book_names[[i]])
-  # add column for chapter numbers and title of book
-  data <- mutate(data, chapter = c(1:nrow(data)), title = names(book_names)[i])
-  # split by word and remove punctuation
-  data <- data %>%
-    unnest_tokens(word, text, to_lower = TRUE)
-  # store clean data to list
-  books[[i]] <- data
-}
-
-# make one data frame from list of data frames
-books <- plyr::ldply(books, data.frame)
-```
-
-
-# book 7
-```{r}
-count(books, word, sort = TRUE)
-
-bing <- inner_join(books, get_sentiments("bing"))
-
-percents <- count(bing, title, chapter, sentiment) %>%
-    group_by(chapter) %>%
-    mutate(total_words = sum(n),
-           percent = n / total_words)
-
-ggplot(percents, aes(x = chapter, y = percent, col = as.factor(sentiment))) +
-  geom_line()
-```
-
-```{r}
-my_book <- filter(books, title == "deathly_hallows")
-afinn <- inner_join(my_book, get_sentiments("afinn"), by = "word")
-scores <- afinn %>%
-  group_by(chapter) %>%
-  summarize(score = sum(score))
-
-ggplot(scores, aes(x = chapter, y = score)) +
-  geom_hline(yintercept = 0, col = "red") +
-  geom_line() +
-  scale_y_continuous(limits = c(-220, 220))
-```
