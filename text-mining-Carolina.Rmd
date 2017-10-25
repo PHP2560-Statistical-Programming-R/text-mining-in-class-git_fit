@@ -112,15 +112,6 @@ book2 <- saga %>%
 ```
 
 ## Group questions: 
-(2) WHat are the most common words by chapter
-(5) Word count for each book
-(1) How the sentiment changes across the entire book
-
-
-(3) Which characters appear the most
-(4) How the emotion anticipation changes throughtout the book
-
-
 (1) What is the word count for each book?   
 ```{r}
 # Count the number of words per book
@@ -188,19 +179,35 @@ score.per.chapter
 
 # Plot 
 ggplot(score.per.chapter, aes(x = chapter, y = net.score)) +
-  geom_hline(yintercept = 0, color="red", size=0.15, aes(color="Reference line y=0")) +
-  geom_line(color="steelblue", size = 1, aes(color="Change of sentiment accross chapters")) +
-  geom_smooth(method = "lm", se = FALSE, lty = 2, size = 0.5, color="purple", aes(color="Lm smoothing")) +
-  geom_smooth(method = "loess", se = FALSE, lty = 2, size = 0.5, color="purple", aes(color="Lm smoothing")) +
+  geom_hline(aes(yintercept = 0, color="Reference line y=0"),size = 0.4) +
+  geom_line(size=1, aes(color="Change of sentiment accross chapters")) +
+  geom_smooth(method = "lm", se = FALSE, lty = 2, size = 0.7, aes(color="Lm smoothing")) +
+  geom_smooth(method = "loess", se = FALSE, lty = 2, size = 0.7, aes(color="Loess smoothing")) +
   scale_x_continuous("Chapter", breaks=c(1:19)) +
   scale_y_continuous("Sentiment Score") +
   ggtitle("Sentiment change accross Chamber of Secrets") +
-  theme(plot.title = element_text(hjust = 0.5)) + 
-  scale_color_manual(name='', values=c('Reference line y=0' = 'red', 'Change of sentiment accross chapters' = 'steelblue', 'Lm smoothing' = 'purple'))
+  theme(plot.title = element_text(hjust = 0.5)) 
 
 ```
 
-*********Interpretation for lm? or loess? ADD LEGEND *********
+```{r}
+sentiment.count <- book2 %>%  
+  # Implement sentiment analysis with the "bing" lexicon
+  inner_join(get_sentiments("bing")) %>% 
+  # Count the sentiment by chapter and negative
+  group_by(chapter,sentiment) %>% 
+  count(chapter,sentiment)  
+
+sentiment.prop <-  sentiment.count %>%
+  # Find the proportion of the total words that are positive and negative by chapter
+  group_by(chapter) %>%
+  mutate(total.words=sum(n), p = n/total.words)  
+
+# Plot  
+ggplot(sentiment.prop, aes(x = chapter, y = p, col = as.factor(sentiment))) +
+  geom_line() 
+```
+
 
 
 (4) Which 10 characters are mentioned the most?
@@ -232,8 +239,8 @@ ggplot(top.characters, aes(x=reorder(word, n), y=n)) +
 
 (5) How does the emotion "anticipation" change throughtout the book?
 ```{r}
-anticipation <- book2 %>%
-  # Implement sentiment analysis with the "afinn" lexicon
+anticipation1 <- book2 %>%
+  # Implement sentiment analysis with the "nrc" lexicon
   inner_join(get_sentiments("nrc"))  %>%
   # Count the sentiment by chapter
   group_by(chapter) %>%
@@ -242,8 +249,28 @@ anticipation <- book2 %>%
   filter(sentiment == "anticipation")
 
 # Plot the change of the sentiment anticipation accross chapters
-ggplot(anticipation, aes(x=chapter, y=n)) +
+ggplot(anticipation1, aes(x=chapter, y=n)) +
 geom_col(fill = "orange", width  = 0.7)
+
+anticipation2 <- book2 %>%
+  # Implement sentiment analysis with the "ncr" lexicon
+  inner_join(get_sentiments("nrc"))  %>%
+  # Count the words by chapter
+  group_by(chapter, sentiment) %>% 
+  count(word) %>%
+  # Get the total occurrences per sentiment
+  summarise(word.occurence = sum(n)) %>%
+  # Get the total occurrences of all sentiments by chapter 
+  mutate(total.words = sum(word.occurence)) %>%
+  # Filter the sentiment anticipation
+  filter(sentiment == "anticipation") %>%
+  # Compute the proportion of occurrence by chapter
+  mutate(proportion = word.occurence/total.words)
+  
+# Plot
+ggplot(anticipation2, aes(x=chapter,y=proportion)) + 
+  geom_line(color="orange")
+
 ```
 
 
@@ -277,7 +304,7 @@ ggplot(top_words, aes(x=word, y=n, fill = sentiment)) +
 
 2. Which words contribute the most to the negative sentiment and positive sentiment of the book "Chamber of Secrets"?
 ```{r}
-negative.contribution <- book2 %>%
+book2 %>%
   # Implement sentiment analysis using the "afinn" lexicon
   inner_join(get_sentiments("afinn")) %>%
   # Select unique word and score columns
@@ -287,7 +314,7 @@ negative.contribution <- book2 %>%
   filter(score<0) %>%
   arrange(score)
 
-positive.contribution <- book2 %>%
+book2 %>%
   # Implement sentiment analysis using the "afinn" lexicon
   inner_join(get_sentiments("afinn")) %>%
   # Select unique word and score columns
@@ -299,7 +326,7 @@ positive.contribution <- book2 %>%
 
 ```
 
-2. What is the relative contribution of each word to the sentiment of the book "Chamber of Secrets"? 
+3. What is the relative contribution of each word to the sentiment of the book "Chamber of Secrets"? 
 ```{r}
 book2 %>%
   # Count by word
@@ -326,14 +353,6 @@ book2 %>%
   ungroup()
 
 ```
-
-
-How many times is each word used in the book?
-```{r}
-
-```
-
-
 
 
 If I were to start a book club with 10 of my friends who have not read or watch the movies of the Harry Potter Saga, what book should we begin reading? 
@@ -396,44 +415,33 @@ book2 %>%
 ```
 
 
-```{r}
-book2 %>%
-  inner_join(get_sentiments("bing")) %>%
-  count(chapter, sentiment) %>%
-  spread(sentiment, n, fill = 0) %>%
-  mutate(sentiment = positive - negative) %>%
-  # Put index on x-axis, sentiment on y-axis, and map comedy/tragedy to fill
-  ggplot(aes(x=chapter, y=sentiment, fill=type)) +
-  # Make a bar chart with geom_col()
-  geom_col() +
-  # Separate panels for each title with facet_wrap()
-  facet_wrap(~ title, scales = "free_x")
-```
-
 (3) How does sentiment change across the entire saga? 
 ```{r}
-sentiment_by_book <- saga %>%
-    # Group by book
-    group_by(book) %>%
-    mutate(total_words = n()) %>%
-    ungroup() %>%
-    # Implement sentiment analysis using the NRC lexicon
-    inner_join(get_sentiments("nrc"))
+score.per.book <- saga %>%
+  # Count by chapter and word
+  count(book, word, sort = TRUE) %>%
+  # Implement sentiment analysis with the "afinn" lexicon
+  inner_join(get_sentiments("afinn")) %>% 
+  group_by(book) %>%
+  # Find the net score for each chapter 
+  summarise(net.score = sum(score))
 
-sentiment_by_book 
+score.per.book
 
-sentiment_by_book %>%
-    # Filter for positive and negative words
-    filter(sentiment %in% c("positive", "negative")) %>%
-    # Count by date, sentiment, and total_words
-    count(book, sentiment, total_words) %>%
-    ungroup() %>%
-    mutate(percent = n / total_words) %>%
-    # Set up the plot with aes()
-    ggplot(aes(book, percent, color=sentiment)) +
-    geom_line(size = 1.5) +
-    geom_smooth(method = "lm", se = FALSE, lty = 2) +
-    expand_limits(y = 0)
+# Plot 
+ggplot(score.per.book, aes(x = book, y = net.score)) +
+  geom_hline(yintercept = 0, color="red", size=0.15, aes(color="Reference line y=0")) +
+  geom_line(color="steelblue", size = 1, aes(color="Change of sentiment accross chapters")) +
+  geom_smooth(method = "lm", se = FALSE, lty = 2, size = 0.5, color="purple", aes(color="Lm smoothing")) +
+  geom_smooth(method = "loess", se = FALSE, lty = 2, size = 0.5, color="purple", aes(color="Lm smoothing")) +
+  scale_x_continuous("Chapter", breaks=c(1:19)) +
+  scale_y_continuous("Sentiment Score") +
+  ggtitle("Sentiment change accross Chamber of Secrets") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_color_manual(name='', values=c('Reference line y=0' = 'red', 'Change of sentiment accross chapters' = 'steelblue', 'Lm smoothing' = 'purple'))
+
+
+
 ```
 
 
