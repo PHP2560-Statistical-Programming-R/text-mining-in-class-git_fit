@@ -53,21 +53,6 @@ library("tidyverse")
 library("stringr")
 library("rebus")
 library("tidytext")
-#Questions:
-#(1) How the sentiment changes across the entire book
-#(2) What are the most common words by chapter
-#(3) Which characters appear the most 
-#(4) How the emotion anticipation changes throughtout the book
-#(5) Word count for each book
-
-#book<-prisoner_of_azkaban
-
-#Q: What are the most common words by chapter?
-#data_frame(text = book) %>%
-#mutate(chapter=c(1:length(book))) %>%
-#unnest_tokens(word,text,to_lower=FALSE) %>%
-
-
 
 # create vector of book names
 book_names <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban, goblet_of_fire, order_of_the_phoenix, half_blood_prince, deathly_hallows)
@@ -106,28 +91,19 @@ ggplot(POA,aes(x=chapter,y=count,color=sentiment))+
   geom_smooth(se=FALSE,linetype = "dashed")
 ```
 
-#Question 4 How the emotion anticipation changes throughtout the book
-```{r}
-POA <- filter(books,title=="prisoner_of_azkaban") %>%
-inner_join(get_sentiments("nrc")) %>%
-group_by(chapter,sentiment) %>%
-dplyr::summarize(count=n()) %>%
-  filter(sentiment== "positive" | sentiment == "negative") %>%
-  arrange(chapter,desc(count))
-
-ggplot(POA,aes(x=chapter))+
-  geom_bar(aes(fill=sentiment)) +
-  ggtitle("Emotion Per Chapter in Prisoner of Azkaban") +
-  coord_flip()
-```
-
 
 # Question 2 What are the most common words by chapter
 ```{r}
-stopwords<- c("this", "is", "are", "a", "the", "he", "you", "your", "and", "on","to","of")
+common_words<-books%>%
+  filter(title =="prisoner_of_azkaban")%>%
+  filter(!(word %in% c("He","I","The"))) %>%
+  anti_join(stop_words)%>%
+  group_by(chapter)%>%
+  dplyr::count(word, sort=TRUE)%>%
+  top_n(5)%>%
+  arrange(chapter)
+common_words
 ```
-
-
 
 
 #Question 3 Which characters appear the most 
@@ -175,11 +151,27 @@ ggplot(POA[1:9, ],aes(x=reorder(word,count),y=count)) +
 # Put frequency labels next to bars  
   geom_text(aes(label = paste0(count)), nudge_y = 1) +
   coord_flip()
-
 ```
 
+#Question 4 How the emotion anticipation changes throughtout the book
+```{r}
+total_words =
+books %>%
+  filter(title=="prisoner_of_azkaban") %>%
+  inner_join(get_sentiments("nrc"))%>%
+  group_by(chapter,sentiment) %>%
+  dplyr::count(word) %>%
+  dplyr::summarize(word_occurence=sum(n))%>%
+mutate(total_words=sum(word_occurence)) %>%
+
+  filter(sentiment=="anticipation") %>%
+  mutate(proportion= word_occurence/total_words) 
 
 
+ggplot(total_words,aes(x=chapter,y=proportion))+
+  ggtitle("Anticipation Throughout Prisoner of Azkaban") +
+  geom_line(color="deeppink")
+```
 
 
 #Question 5 Word count for each book
@@ -188,6 +180,7 @@ filter(books,title=="prisoner_of_azkaban") %>%
 select(word) %>% 
 dplyr::summarize(total_words=n())
 ```
+
 
 
 
