@@ -29,6 +29,7 @@ install.packages("devtools")
 devtools::install_github("bradleyboehmke/harrypotter")
 
 library(harrypotter)
+install.packages(ggplot2)
 ```
 - [State of the Union speeches](https://pradeepadhokshaja.wordpress.com/2017/03/31/scraping-the-web-for-presdential-inaugural-addresses-using-rvest/)
 - Scrape tweets using [`twitteR`](https://www.credera.com/blog/business-intelligence/twitter-analytics-using-r-part-1-extract-tweets/)
@@ -93,10 +94,10 @@ Book6
 p1 <- ggplot(Book6, aes(x=chapter, y=n)) +
       geom_line(show.legend = FALSE, size = 0.3, color = "blue") +
       scale_color_brewer(palette = "Set1") +
-      geom_smooh(se=FALSE, size = 0.3, linetype = 4, color = "green")
+      geom_smooth(se=FALSE, size = 0.3, linetype = 4, color = "green")
 
 p1+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-panel.background = element_blank(),axis.line = element_line(colour = "black") )+
+panel.background = element_blank(),axis.line = element_line(colour = "black"), plot.title = element_text(hjust = 0.5))+
  xlim(1, 30) +
 scale_x_continuous(
   breaks = c(1:30)) +
@@ -113,7 +114,7 @@ scale_x_continuous(
 ```{r}
 Book6 <- series %>%
   filter (book == "half_blood_prince") %>% 
-       inner_join(get_sentiments("afin")) %>%
+       inner_join(get_sentiments("bing")) %>%
        group_by(sentiment) %>%
       ungroup() %>%
   group_by(chapter) %>%
@@ -130,8 +131,7 @@ panel.background = element_blank(),axis.line = element_line(colour = "black") )+
  xlim(1, 30) +
 scale_x_continuous(
   breaks = c(1:30)) +
- ylim(1, 280) +
-  breaks = c(seq(1:280, by= ))
+ ylim(1, 280)
 
 ```
 
