@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ntitle: \"Text Analyis\"\noutput: github_document\n---\n\n\n\n\n# Your mission\n\nPerform text analysis.\n\n## Okay, I need more information\n\nPerform sentiment analysis or topic modeling using text analysis methods as demonstrated in the pre-class work and in the readings.\n\n## Okay, I need even more information.\n\nDo the above. Can't think of a data source?\n\n- `gutenbergr`\n- `AssociatedPress` from the `topicmodels` package\n- `NYTimes` or `USCongress` from the `RTextTools` package\n- Harry Potter Complete 7 Books text\n    ```\n    if (packageVersion(\"devtools\") < 1.6) {\n  install.packages(\"devtools\")\n}\n\ndevtools::install_github(\"bradleyboehmke/harrypotter\")\n    ```\n- [State of the Union speeches](https://pradeepadhokshaja.wordpress.com/2017/03/31/scraping-the-web-for-presdential-inaugural-addresses-using-rvest/)\n- Scrape tweets using [`twitteR`](https://www.credera.com/blog/business-intelligence/twitter-analytics-using-r-part-1-extract-tweets/)\n\nAnalyze the text for sentiment OR topic. **You do not need to do both**. The datacamp courses and [Tidy Text Mining with R](http://tidytextmining.com/) are good starting points for templates to perform this type of analysis, but feel free to *expand beyond these examples*.\n\n# Timelines and Task\n\n\nWe will spend the next 2 weeks working on analyzing textual data in R. You will do the following:\n\n- Start with some text based data.\n- Clean data and prepare it for analysis\n- Ask questions about the data\n- Answer these questions with the data using tables and graphics\n- Each group member must have their own unique question that they code the answer for. \n\n",
+    "created" : 1508345860544.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1771793392",
+    "id" : "98E112BA",
+    "lastKnownWriteTime" : 1508345647,
+    "last_content_update" : 1508345647,
+    "path" : "~/Desktop/simulations-pre-class-pwqqq-master/text-mining-in-class-git_fit/text-mining.Rmd",
+    "project_path" : "text-mining.Rmd",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "\n## Analyzing Text Data in R\n\nWe will spend the next 2 weeks working on analyzing textual data in R. You will do the following:\n\n- Start with some text based data.\n- Clean data and prepare it for analysis\n- Ask questions about the data\n- Answer these questions with the data using tables and graphics\n- Each group member must have their own unique question that they code the answer for. \n\n[Please click]() in order to get your github repository with the assignment and starter code. \n\nYou should commit often. Your way of showing what you have added to this work is by committing. \n\n\n## Tips\n\n- Clone this github repository\n- Then open the R-Project not just the file\n- When you make changes Follow these steps:\n    - Add files changed\n    - Commit Changes\n    - Pull \n    - Push\n    \n    \n\n",
+    "created" : 1508346462525.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "188740148",
+    "id" : "8A09EFD0",
+    "lastKnownWriteTime" : 1508345647,
+    "last_content_update" : 1508345647,
+    "path" : "~/Desktop/text-mining-in-class-git_fit/README.md",
+    "project_path" : "README.md",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "markdown"
+}
