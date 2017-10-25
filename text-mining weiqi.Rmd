@@ -22,13 +22,14 @@ Do the above. Can't think of a data source?
 - `AssociatedPress` from the `topicmodels` package
 - `NYTimes` or `USCongress` from the `RTextTools` package
 - Harry Potter Complete 7 Books text
-    ```
-    if (packageVersion("devtools") < 1.6) {
-  install.packages("devtools")
-}
 
+```{r, message=FALSE, warning=TRUE}
+
+install.packages("devtools")
 devtools::install_github("bradleyboehmke/harrypotter")
-    ```
+
+library(harrypotter)
+```
 - [State of the Union speeches](https://pradeepadhokshaja.wordpress.com/2017/03/31/scraping-the-web-for-presdential-inaugural-addresses-using-rvest/)
 - Scrape tweets using [`twitteR`](https://www.credera.com/blog/business-intelligence/twitter-analytics-using-r-part-1-extract-tweets/)
 
@@ -43,5 +44,133 @@ We will spend the next 2 weeks working on analyzing textual data in R. You will 
 - Clean data and prepare it for analysis
 - Ask questions about the data
 - Answer these questions with the data using tables and graphics
-- Each group member must have their own unique question that they code the answer for. 
+- Each group member must have their own unique question that they code the answer for.
+
+
+```{r}
+library(plyr)
+library(dplyr)
+library(tidytext)
+library(stringr)
+library(ggplot2)
+
+
+titles <- c("philosophers_stone", "chamber_of_secrets", "prisoner_of_azkaban", "goblet_of_fire", "order_of_the_phoenix", "half_blood_prince", "deathly_hallows")
+
+books <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban,
+           goblet_of_fire, order_of_the_phoenix, half_blood_prince,
+           deathly_hallows)
+  
+series <- tibble()
+
+for(i in seq_along(titles)) {
+        
+        clean <- tibble(chapter = seq_along(books[[i]]),
+                        text = books[[i]]) %>%
+             unnest_tokens(word, text) %>%
+             mutate(book = titles[i]) %>%
+             select(book, everything())
+
+        series <- rbind(series, clean)
+}
+
+series
+series %>%
+  filter (book == "half_blood_prince")
+```
+
+(1) How the sentiment changes across the entire book
+
+```{r}
+Senti <- series %>%
+  filter (book == "half_blood_prince") %>% 
+       inner_join(get_sentiments("bing")) %>%
+       group_by(chapter) %>%
+       count (sentiment) 
+
+PosWordProp <- Senti %>%
+  ungroup() %>%
+  filter (sentiment == "positive") %>%
+  mutate(total=sum(n), percent = n/total)
+
+PosWordProp
+
+NegWordProp <- Senti %>%
+  ungroup() %>%
+  filter (sentiment == "negative") %>%
+  mutate(total=sum(n), percent = n/total)
+NegWordProp
+
+ggplot(PosWordProp, aes(x=chapter, y=percent)) +
+geom_line(show.legend = FALSE,color = "red", size = 0.3)
+
+ggplot(NegWordProp, aes(x=chapter, y=percent, fill = sentiment)) +
+geom_line(show.legend = FALSE, color = "blue", size = 0.3)
+```
+
+
+(2) WHat are the most common words by chapter
+```{r}
+Book6Word <- series %>%
+  filter(book == "half_blood_prince") %>%
+  group_by(chapter)  %>%
+  anti_join(stop_words) %>%
+  count(word, chapter) %>%
+  top_n(1)
+
+Book6Word
+```
+
+(3) Which characters appear the most 
+```{r}
+library(dplyr)
+Book6Char <- series %>%
+         filter(book == "half_blood_prince")  %>%
+         group_by(word) %>%
+         select(word) %>%
+         filter(word == "harry" | 
+                word == "ron" | 
+                word == "hermione" | 
+                word == "dumbledore" |
+                word == "voldemort" | 
+                word == "dobby") %>%
+         count (word, sort = TRUE) %>%
+         arrange (desc(n))
+           
+Book6Char 
+
+ggplot(Book6Char, aes(x=word, y=n)) +
+geom_col(show.legend = FALSE, fill = "lightblue", width  = 0.5)
+```
+
+(4) How the emotion anticipation changes throughtout the book
+```{r}
+Book6Anti <- series %>%
+  filter (book == "half_blood_prince") %>% 
+       inner_join(get_sentiments("nrc"))  %>%
+       group_by(chapter) %>%
+       count (sentiment) %>%
+       filter(sentiment == "anticipation") 
+        
+Book6Anti
+
+ggplot(Book6Anti, aes(x=chapter, y=n)) +
+geom_col(show.legend = FALSE, fill = "lightblue", width  = 0.5)
+
+
+```
+
+
+(5) Word count for each book
+```{r}
+Book6Count <- series %>%
+  filter(book == "order_of_the_phoenix") %>%
+  group_by(chapter) 
+nrow(book6)
+```
+
+
+
+
+
 
