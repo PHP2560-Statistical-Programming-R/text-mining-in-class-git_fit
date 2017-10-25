@@ -136,18 +136,20 @@ book2 %>%
 Besides articles and pronouns, the most common words are Harry, Ron, Hermione, Malfoy, and Lockhart, all of which are characters of the book. 
 
 ```{r}
-book2 %>% 
+common.words <- book2 %>% 
   # Remove stop words like articles
   anti_join(stop_words) %>%
   group_by(chapter) %>%
   # Use count to find out the 10 words used the most in each chapter
   count(word, sort=TRUE) %>%
-  top_n(10) %>%
+  top_n(5) %>%
   arrange(chapter)
 
 # Plot 
-
-
+ggplot(common.words, aes(x = reorder(word, n), y = n, fill = chapter))+ # I am making a plot that fills in the bar with the sentiment
+  geom_col(show.legend=FALSE)+ # this makes columns and excludes the legend
+  facet_wrap(~chapter, scales="free") + # this feature tells R to make this graph for each sentiment
+  coord_flip() # flip the x and y axis
 
 ```
 
@@ -184,7 +186,7 @@ score.per.chapter
 
 # Plot 
 ggplot(score.per.chapter, aes(x = chapter, y = net.score)) +
-  geom_hline(aes(yintercept = 0, color="Reference line y=0"),size = 0.4) +
+  geom_hline(aes(yintercept = 0, color="Reference line y=0"), size = 0.4) +
   geom_line(size=1, aes(color="Change of sentiment accross chapters")) +
   geom_smooth(method = "lm", se = FALSE, lty = 2, size = 0.7, aes(color="Lm smoothing")) +
   geom_smooth(method = "loess", se = FALSE, lty = 2, size = 0.7, aes(color="Loess smoothing")) +
