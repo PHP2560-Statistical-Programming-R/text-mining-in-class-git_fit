@@ -144,6 +144,11 @@ book2 %>%
   count(word, sort=TRUE) %>%
   top_n(10) %>%
   arrange(chapter)
+
+# Plot 
+
+
+
 ```
 
 (3) What are the most common words in the book "Chamber of Secrets"?
