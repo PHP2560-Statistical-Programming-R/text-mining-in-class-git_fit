@@ -1,0 +1,273 @@
+---
+title: "Text Analyis"
+output: github_document
+---
+
+
+
+
+# Your mission
+
+Perform text analysis.
+
+## Okay, I need more information
+
+Perform sentiment analysis or topic modeling using text analysis methods as demonstrated in the pre-class work and in the readings.
+
+## Okay, I need even more information.
+
+Do the above. Can't think of a data source?
+
+- `gutenbergr`
+- `AssociatedPress` from the `topicmodels` package
+- `NYTimes` or `USCongress` from the `RTextTools` package
+- Harry Potter Complete 7 Books text
+```{r}
+install.packages(("devtools"))
+if (packageVersion("devtools") < 1.6) {
+  install.packages("devtools")
+}
+
+devtools::install_github("bradleyboehmke/harrypotter")
+library(harrypotter)
+chamber_of_secrets
+```
+** Questions **
+We are going to each take a harry potter book
+(1) How the sentiment changes across the entire book
+(2) WHat are the most common words by chapter
+(3) Which characters appear the most 
+(4) How the emotion anticipation changes throughtout the book
+(5) Word count for each book 
+
+
+- [State of the Union speeches](https://pradeepadhokshaja.wordpress.com/2017/03/31/scraping-the-web-for-presdential-inaugural-addresses-using-rvest/)
+- Scrape tweets using [`twitteR`](https://www.credera.com/blog/business-intelligence/twitter-analytics-using-r-part-1-extract-tweets/)
+
+Analyze the text for sentiment OR topic. **You do not need to do both**. The datacamp courses and [Tidy Text Mining with R](http://tidytextmining.com/) are good starting points for templates to perform this type of analysis, but feel free to *expand beyond these examples*.
+
+# Timelines and Task
+
+
+We will spend the next 2 weeks working on analyzing textual data in R. You will do the following:
+
+- Start with some text based data.
+- Clean data and prepare it for analysis
+- Ask questions about the data
+- Answer these questions with the data using tables and graphics
+- Each group member must have their own unique question that they code the answer for. 
+
+
+```{r}
+# How to clean the data
+library(tidytext)
+
+library(dplyr)
+library(tidytext)
+library(stringr)
+library(ggplot2)
+
+data=
+  data_frame(text=chamber_of_secrets) %>%    # Choose a book in Harry Potter
+mutate(chapter=c(1:nrow(data)))
+
+  data %>%
+unnest_tokens(word,text,to_lower=FALSE) # this means we are splitting the text up by word, and I wanted to make sure that the data preserved the capitlization so I set the to_lower option equal to false
+  
+  
+  data1=
+  data_frame(text=deathly_hallows) %>%    # Choose a book in Harry Potter
+mutate(chapter=c(1:nrow(data1)))
+
+  data1 %>%
+unnest_tokens(word,text,to_lower=FALSE)
+  
+complete_book<-list(philosophers_stone,chamber_of_secrets,prisoner_of_azkaban,goblet_of_fire,order_of_the_phoenix,half_blood_prince,deathly_hallows)
+ for (i in complete7){
+   data=
+  data_frame(text=chamber_of_secrets) %>%    # Choose a book in Harry Potter
+mutate(chapter=c(1:nrow(data)))
+
+  data %>%
+unnest_tokens(word,text,to_lower=FALSE)
+ }
+  
+```
+
+```{r}
+book_names <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban, goblet_of_fire, order_of_the_phoenix, half_blood_prince, deathly_hallows) # make a list of all the book names 
+
+names(book_names) <- c("philosophers_stone", "chamber_of_secrets", "prisoner_of_azkaban", "goblet_of_fire", "order_of_the_phoenix", "half_blood_prince", "deathly_hallows")  # assign names to each element of the list
+
+books = vector(mode = "list", length = 7) # create an empty vector to store all the books
+
+for(i in 1:length(books)){
+  data <- data_frame(text = book_names[[i]])
+  data <- mutate(data, chapter = c(1:nrow(data)), title = names(book_names)[i])
+  data <- data %>%
+    unnest_tokens(word, text, to_lower = TRUE)
+  books[[i]] <- data
+}
+
+books <- plyr:: ldply(books, data.frame)  # make into a data frame
+
+
+```
+
+```{r}
+# to answer the first question, I want to look at how the sentiments have changed int 
+```
+
+
+data <- data_frame(text = chamber_of_secrets)
+data <- mutate(data, chapter = c(1:nrow(data)), title = "chamber_of_secrets")
+data <- data %>%
+  unnest_tokens(word, text, to_lower = TRUE)
+
+count(data, word, sort = TRUE)
+
+bing <- inner_join(data, get_sentiments("bing"))
+
+percents <- count(bing, chapter, sentiment) %>%
+    group_by(chapter) %>%
+    mutate(total_words = sum(n),
+           percent = n / total_words)
+
+ggplot(percents, aes(x = chapter, y = percent, col = as.factor(sentiment))) +
+  geom_line()
+
+
+combined <- inner_join(data, get_sentiments("afinn"))
+scores <- group_by(afinn, chapter) %>%
+  summarize(score= sum(score))
+
+ggplot(scores, aes(x = chapter, y = score)) +
+  geom_line() +
+  geom_line()
+
+
+
+```{r}
+# I want to first start by looking at the sentiment content in the very first book that she wrote : Philosophers stone
+
+book_one_count=
+books %>%
+filter(title== "philosophers_stone" ) %>%  # Just looking at the rows which contain Philsopher's stone
+  inner_join(get_sentiments("bing")) %>%  # we are using the bing lexicon to examine sentiment
+  group_by(chapter,sentiment) %>% # I want to group by chapter and by sentiment ( positive or negative)
+dplyr::  count(chapter,sentiment)  #I want to the count the sentiment based on chapter
+
+sentiment_prop<-  
+  book_one_count %>%
+  group_by(chapter) %>%
+   mutate(total_words=sum(n),prop=n/total_words)  # what proportion of the total words are positive and negative in each chapter
+  
+    ggplot(sentiment_prop, aes(x = chapter, y = prop, col = as.factor(sentiment))) +
+  geom_line()   # plotting the sentiment over each chapter in the book
+    
+
+
+```
+
+
+```{r}
+ # I can also use a different lexicon that assings a score rather than saying positive and negative. Affin lexicon
+    
+affin_lex<-
+  books %>%
+  filter(title=="philosophers_stone")%>%
+  inner_join(get_sentiments("afinn"))%>%  # This lexicon assigns a score from -5 to +5 based on negative and positive 
+  group_by(chapter) %>%
+  summarize(total_score=sum(score)) # what is the total score for each chapter. Do some chapters tend to be more positive than negative
+
+  
+ ggplot(affin_lex, aes(x = chapter, y = total_score)) +
+  geom_line(col="darkblue")   # plotting the sentiment over each chapter in the book based on score
+```
+ It can be seen here that JK rowling changes the sentiment's of her chapters quickly. This would make sense, seeing as the books are known for being emotion inducing. It can be seen that from the onset, JK rowling's language quickly becomes negative as she sets up the books, and then works on building up positive sentiments towards the middle of the book . However, as can be seen, the sentiment takes a nose dive in chapter 15, perhaps indicating the book ends on an uncertain/ neative note.
+ 
+```{r}
+## For this part I want to see the most common words by chapter, EXCLUDING articles such as "a", "an", "and", "the"
+```
+
+```{r}
+philosophers_stone<-
+books %>%
+  filter(title=="philosophers_stone") %>%
+  inner_join(get_sentiments("nrc"))
+  
+```
+```{r}
+philosophers_stone %>%
+  group_by(chapter,word) %>%
+  count(word,sort=TRUE)%>%
+  top_n(2) %>%  # Since I grouped the data by chapter, top_n lets me see the top x # of words for each chapter. For example top_n(5) means I will see the top 5 words in each chapter. 
+ggplot(aes(word,n))+
+  geom_col(stat="identity")+
+    coord_flip()
+```
+
+
+
+
+ 
+ 
+##As can be expected the top word in every single chapter is the word "Harry". The graph shows that words like "professor" and "aunt" also appear quite a few times.
+ 
+ 
+ 
+ 
+ 
+ 
+  
+
+## For this next part I would like to see how the anticipation changes throughout the book. JK rowling is known for how she strings the reader along and how she infuses anxiety into her text. We will examine this here using the NRC lexicon 
+
+```{r}
+nrc_look=
+books %>%
+  filter(title=="philosophers_stone") %>%
+  inner_join(get_sentiments("nrc")) %>%
+  filter(sentiment=="anticipation")%>%
+group_by(chapter) %>%
+  count(sentiment)
+
+ggplot(nrc_look,aes(x=chapter, y=n))+ geom_bar(stat="identity")
+
+
+```
+
+##Another way of tracking anticipation would be to look at the proportion of words which have an anticipation sentiment rather than looking at the raw usage of the words :
+```{r}
+total_words=
+books %>%
+  filter(title=="philosophers_stone") %>%
+  inner_join(get_sentiments("nrc"))%>%
+  group_by(chapter,sentiment) %>%
+  count(word) %>%
+  summarise(word_occurence=sum(n))%>%
+mutate(total_words=sum(word_occurence)) %>%
+
+  filter(sentiment=="anticipation") %>%
+  mutate(proportion= word_occurence/total_words) 
+  ggplot(total_words,aes(x=chapter,y=proportion,col="deeppink3"))+geom_line()
+  
+```
+
+### it appears that JK rowling really takes the reader for a ride emotionally with her first book. Notice the proportion of words that have an anticipation sentiment rise and fall quite sharply from chapter to chapter.
+
+### For my own personal analysis I want to look at a variety of aspects in the first harry potter book.
+
+##I want to start by looking at the top 10 words in each sentiment across the entire book
+```{r}
+philosophers_stone %>%
+  group_by(sentiment) %>%  # i grouped it by sentiment
+  count(word)%>% # I count the number of times the word appears in the book
+  top_n(10)%>%  # I then select the top 10 words for each sentiment
+ 
+  
+  ggplot(aes(word,n,fill=sentiment))+ # I am making a plot that fills in the bar with the sentiment
+  geom_col(show.legend=FALSE)+ # this makes columns and excludes the legend
+  facet_wrap(~sentiment,scales="free")+ # this feature tells R to make this graph for each sentiment
+  coord_flip() # flip the x and y axis
+```

@@ -81,33 +81,59 @@ series %>%
 
 (1) How the sentiment changes across the entire book
 
+
 ```{r}
-Senti <- series %>%
+Book6 <- series %>%
   filter (book == "half_blood_prince") %>% 
-       inner_join(get_sentiments("bing")) %>%
+       inner_join(get_sentiments("afin")) %>%
        group_by(chapter) %>%
-       count (sentiment) 
+       summarise(n= sum(score))
+Book6
 
-PosWordProp <- Senti %>%
-  ungroup() %>%
-  filter (sentiment == "positive") %>%
-  mutate(total=sum(n), percent = n/total)
+p1 <- ggplot(Book6, aes(x=chapter, y=n)) +
+      geom_line(show.legend = FALSE, size = 0.3, color = "blue") +
+      scale_color_brewer(palette = "Set1") +
+      geom_smooh(se=FALSE, size = 0.3, linetype = 4, color = "green")
 
-PosWordProp
+p1+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(),axis.line = element_line(colour = "black") )+
+ xlim(1, 30) +
+scale_x_continuous(
+  breaks = c(1:30)) +
+  geom_hline(yintercept = 0, color = "red") +
+ ylim(-250, 250) +
+  scale_y_continuous(
+    breaks = c(seq(-250,250,by=50)) 
+  )+ 
+  ggtitle("Change in Sentiment in Half-Blood Prince")
 
-NegWordProp <- Senti %>%
-  ungroup() %>%
-  filter (sentiment == "negative") %>%
-  mutate(total=sum(n), percent = n/total)
-NegWordProp
-
-ggplot(PosWordProp, aes(x=chapter, y=percent)) +
-geom_line(show.legend = FALSE,color = "red", size = 0.3)
-
-ggplot(NegWordProp, aes(x=chapter, y=percent, fill = sentiment)) +
-geom_line(show.legend = FALSE, color = "blue", size = 0.3)
 ```
 
+
+```{r}
+Book6 <- series %>%
+  filter (book == "half_blood_prince") %>% 
+       inner_join(get_sentiments("afin")) %>%
+       group_by(sentiment) %>%
+      ungroup() %>%
+  group_by(chapter) %>%
+  count(sentiment, chapter)
+  
+
+p1 <- ggplot(Book6, aes(x=chapter, y=n, color = sentiment)) +
+      geom_line(show.legend = FALSE, size = 0.3) +
+      scale_color_brewer(palette = "Set1") +
+      geom_smooth(se=FALSE, size = 0.2, linetype = 4)
+
+p1 + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(),axis.line = element_line(colour = "black") )+
+ xlim(1, 30) +
+scale_x_continuous(
+  breaks = c(1:30)) +
+ ylim(1, 280) +
+  breaks = c(seq(1:280, by= ))
+
+```
 
 (2) WHat are the most common words by chapter
 ```{r}
@@ -155,7 +181,7 @@ Book6Anti <- series %>%
 Book6Anti
 
 ggplot(Book6Anti, aes(x=chapter, y=n)) +
-geom_col(show.legend = FALSE, fill = "lightblue", width  = 0.5)
+geom_col(show.legend = FALSE, fill = "blue", width  = 0.5)
 
 
 ```

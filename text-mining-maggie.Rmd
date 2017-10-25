@@ -60,7 +60,7 @@ QUESTIONS:
 
 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(dplyr)
 devtools::install_github("bradleyboehmke/harrypotter")
 library(harrypotter)
@@ -87,15 +87,18 @@ for(i in 1:length(books)){
 }
 
 # make one data frame from list of data frames
-books <- plyr::ldply(books, data.frame)
+books_raw <- plyr::ldply(books, data.frame)
+books <- anti_join(books_raw, stop_words)
 ```
 
 
 # book 7
-```{r}
-count(books, word, sort = TRUE)
+```{r, message=FALSE}
+books %>% 
+  count(word, sort = TRUE)
 
-bing <- inner_join(books, get_sentiments("bing"))
+bing <- inner_join(books, get_sentiments("bing")) %>%
+  filter(title == "deathly_hallows")
 
 percents <- count(bing, title, chapter, sentiment) %>%
     group_by(chapter) %>%
@@ -103,10 +106,11 @@ percents <- count(bing, title, chapter, sentiment) %>%
            percent = n / total_words)
 
 ggplot(percents, aes(x = chapter, y = percent, col = as.factor(sentiment))) +
-  geom_line()
+  geom_line() +
+  geom_smooth(method = "loess", se = FALSE)
 ```
 
-```{r}
+```{r, message=FALSE}
 my_book <- filter(books, title == "deathly_hallows")
 afinn <- inner_join(my_book, get_sentiments("afinn"), by = "word")
 scores <- afinn %>%
@@ -116,5 +120,30 @@ scores <- afinn %>%
 ggplot(scores, aes(x = chapter, y = score)) +
   geom_hline(yintercept = 0, col = "red") +
   geom_line() +
-  scale_y_continuous(limits = c(-220, 220))
+  geom_smooth(method="loess", se = FALSE) +
+  scale_y_continuous(limits = c(-310, 310))
+```
+```{r}
+filter(books, title == "deathly_hallows") %>%
+  group_by(chapter) %>%
+  summarize(word_count = n()) %>%
+  ggplot(aes(chapter, word_count)) +
+  geom_col()
+```
+
+```{r}
+nrc <- inner_join(books, get_sentiments("nrc")) %>%
+  filter(title == "deathly_hallows", sentiment == "anticipation")
+percents <- group_by(nrc, chapter) %>%
+  summarize(n_anticipation = n())
+
+total_words <- filter(books, title == "deathly_hallows") %>%
+  group_by(chapter) %>%
+  summarize(n_total = n())
+
+percents <- mutate(percents, n_total = total_words$n_total, percent = n_anticipation/n_total)
+
+ggplot(percents, aes(x = chapter, y = percent)) +
+  geom_line() +
+  geom_smooth(method = "loess", se = FALSE)
 ```
