@@ -84,18 +84,6 @@ books <- ldply(books, data.frame)
 ```
 
 - Ask questions about the data
-```{r}
-#word count for each book
-chapter_words<-books%>%
-  filter(title == "order_of_the_phoenix")%>%
-  group_by(chapter)%>%
-  count()
-
-chapter_words%>%
-  ungroup()%>%
-  mutate(total_words=sum(n))
-
-```
 
 ```{r}
 #Q1:How the sentiment changes across the entire book
@@ -258,7 +246,26 @@ chapter_words%>%
   mutate(total_words=sum(n))
 
 ```
+
+```{r}
+#Q6:All sentiments in the order of the phoenix
+
+all_senti<-books %>%
+  #filter for the book in the series
+  filter(title == "order_of_the_phoenix") %>%
+  #join uding the nrc lexicon
+        right_join(get_sentiments("nrc")) %>%
+  #filter to not include any sentiments that are N/A
+        filter(!is.na(sentiment)) %>%
+  #count all the sentiments present and sort by most popular
+        count(sentiment, sort = TRUE)
+all_senti
+
+ggplot(all_senti, aes(sentiment, n, fill = sentiment))+ # I am making a plot that fills in the bar with the most common words
+  geom_col(show.legend=TRUE)+
+  ggtitle("All Sentiments in Order of the Phoenix")
 ```
+
 
 - Answer these questions with the data using tables and graphics
 - Each group member must have their own unique question that they code the answer for. 
