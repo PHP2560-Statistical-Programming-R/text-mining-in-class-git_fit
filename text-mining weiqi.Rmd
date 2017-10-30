@@ -192,11 +192,130 @@ geom_col(show.legend = FALSE, fill = "blue", width  = 0.5)
 Book6Count <- series %>%
   filter(book == "order_of_the_phoenix") %>%
   group_by(chapter) 
-nrow(book6)
+nrow(Book6Count)
 ```
 
 
+(6) Building wordcloud
+
+```{r}
+library(plyr)
+library(dplyr)
+library(tidytext)
+library(stringr)
+library(ggplot2)
+install.packages("wordcloud")
+library(wordcloud)
+library(dplyr)
+
+p2 <- series %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100)) 
+
+p2
 
 
+```
 
+(7) Plotting different colors for the most positive and negative words in Book6
+```{r}
+library(reshape2)
+library(wordcloud)
+
+series %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("#F8766D", "#00BFC4"),
+                   max.words = 100)
+```
+
+
+(8) examine pairs of two consecutive words
+```{r}
+titles <- c("philosophers_stone", "chamber_of_secrets", "prisoner_of_azkaban", "goblet_of_fire", "order_of_the_phoenix", "half_blood_prince", "deathly_hallows")
+
+books <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban,
+           goblet_of_fire, order_of_the_phoenix, half_blood_prince,
+           deathly_hallows)
+  
+hp_bigrams<- tibble()
+
+for(i in seq_along(titles)) {
+        
+        clean <- tibble(chapter = seq_along(books[[i]]),
+                        text = books[[i]]) %>%
+             unnest_tokens(bigram, text, token = "ngrams", n = 2) %>%
+             mutate(book = titles[i]) %>%
+             select(book, everything())
+
+        hp_bigrams <- rbind(hp_bigrams, clean)
+}
+
+
+Book6bi <- hp_bigrams%>%
+  filter (book == "half_blood_prince")
+Book6bi
+```
+
+(9) count the most common bigrams and delete the stop_words
+```{r}
+library(tidyr)
+
+#split bigram into two columns, which are word1 and word2
+bigrams_separated <- Book6bi %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+#remove cases where either is a stop-word
+bigrams_filtered <- bigrams_separated %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)
+
+#define a vector of negation words
+negation_words <- c("not", "no", "never", "without")
+
+#filter all the rows which word1 belongs to one of the negation words. 
+#using "afinn" to get the sentiment of word2, and count how many times the word appers in a chapter
+not_words <- bigrams_separated %>% 
+  filter(word1 %in% negation_words) %>%
+  group_by(chapter) %>%
+  inner_join(get_sentiments("afinn"), by = c(word2 = "word")) %>%
+  count(word1, word2, score, sort = TRUE) %>%
+  ungroup()
+
+
+#because we assumed "not object"as positive words before, so we need to substract two times of the (n*score) in order to find the net sentiment value of each chapter. We take the negative value because the actual socre is opposite to the sentiment of the word contribution
+contribution <- not_words %>%
+  mutate(contributionscore = (-2* n * score)) %>%
+  select (chapter, contributionscore) %>%
+  group_by(chapter) %>%
+  summarise(n =sum(contributionscore))
+
+contribution
+
+realresult <- merge(newdata, Book6, by="chapter") %>%
+  mutate(n= (n.x + n.y))
+
+x <- realresult %>%
+  select(chapter, n.y, n)
+
+p2 <- ggplot(x, aes(x= chapter)) + 
+  geom_line(aes(y = n.y, colour = "red")) + 
+  geom_line(aes(y = n, colour = "blue"))
+
+p2+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(),axis.line = element_line(colour = "black"), plot.title = element_text(hjust = 0.5))+
+ xlim(1, 30) +
+scale_x_continuous(
+  breaks = c(1:30)) +
+  geom_hline(yintercept = 0, color = "red") +
+ ylim(-250, 250) +
+  scale_y_continuous(
+    breaks = c(seq(-250,250,by=50)) 
+  )+ 
+  ggtitle("Change in Sentiment of Half-Blood Prince After Adjustment ")
+
+
+```
 
