@@ -89,9 +89,12 @@ library(plyr)
 library(dplyr)
 library(tidytext)
 library(stringr)
+library(stringi)
 library(ggplot2)
 library(harrypotter)
 library(rebus)
+library(tokenizers)
+library(tm)
 
 book_names <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban, goblet_of_fire, order_of_the_phoenix, half_blood_prince, deathly_hallows)
 
@@ -111,16 +114,25 @@ for(i in 1:length(books)){
 bing <- get_sentiments("bing")
 cs_book= books[[4]]
 sentiment_4=inner_join(cs_book, bing)
-percents <- sentiment_4 %>% dplyr::group_by(chapter) %>% dplyr::count(sentiment) %>% dplyr:: mutate(total_words=sum(n))
+percents <- sentiment_4 %>% dplyr::group_by(chapter) %>% dplyr::count(sentiment) %>% dplyr:: mutate(total_words=sum(n), percent=n/total_words)
 
 
-ggplot(percents, aes(x = chapter, y = percent, col = as.factor(sentiment))) +
-  geom_line()
+ggplot(percents, aes(x = chapter, y = percent, fill=sentiment)) +
+  geom_bar(stat='identity', color='black')+
+  guides(fill=guide_legend(reverse=T)) +
+  scale_fill_brewer(palette='Blues')
 
 
 #(2) What are the most common words by chapter
-stop=c(stopwords("en"), 'said', 'mr', 'mrs', 'he', 'she', 'it', 'they', 'i', 'you', 'professor')
-comm_words<-cs_book %>% dplyr::filter(!word %in% stop) %>% dplyr::group_by(chapter) %>% dplyr::count(word) %>% dplyr::arrange(desc(n))
+stop=c(stopwords("en"), 'said', 'mr', 'mrs', 'he', 'she', 'it', 'they', 'i', 'you', 'professor', 'The', 'I', 'He', 'She', 'It')
+comm_words<-cs_book %>% dplyr::filter(!word %in% stop) %>% dplyr::group_by(chapter) %>% dplyr::count(word) %>% dplyr::arrange(desc(n)) %>% dplyr::rename(count=n)%>% dplyr::mutate(total=sum(count), percent=count/total) %>% filter(percent>0.01)
+
+ggplot(comm_words, aes(x=percent, y=reorder(word, percent)))+
+  geom_point(size=1, aes(color=factor(chapter)))+
+  theme_classic()+
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(), 
+        panel.grid.major.y = element_line(color='grey', linetype = "dashed"))
 
 
 #(3) Which characters appear the most 
@@ -136,16 +148,143 @@ cap_stop=stri_trans_totitle(stop)
 pattern1=START %R% UPPER %R% optional(zero_or_more(ANY_CHAR) %R% SPC %R% UPPER)
 Char_4<-str_subset(books[[4]]$word, pattern=pattern1)
 char_list<-data_frame(word=Char_4) %>% filter(!word %in% cap_stop) %>% unique()
-char_list_2<-right_join(books[[4]], char_list) %>% dplyr::count(word) %>% dplyr::arrange(desc(n))
+char_list_2<-right_join(books[[4]], char_list) %>% dplyr::count(word)  %>% dplyr::arrange(desc(n)) %>% dplyr::filter(n>100)%>% dplyr::mutate(total=sum(n), percent=n/total)
+
+ggplot(char_list_2, aes(x=percent, y=reorder(word, percent)))+
+  geom_point(size=2)+
+  theme_classic()+
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(), 
+        panel.grid.major.y = element_line(color='grey', linetype = "dashed"))
+
 
 #(4) How the emotion anticipation changes throughtout the book
 nrc <- get_sentiments("nrc") %>% filter(sentiment=='anticipation')
 cs_book= books[[4]]
 anti_4=inner_join(cs_book, nrc)
-percents_4 <- anti_4 %>% dplyr::group_by(chapter) %>% dplyr::count(sentiment) %>% dplyr:: mutate(total_words=sum(n))
+
+percents_4 <- anti_4 %>% dplyr::group_by(chapter) %>% dplyr::count(sentiment)
+
+y_label_above=(percents_4$n+10)
+y_label_below=(percents_4$n-5)
+differences=c(0,diff(percents_4$n))
+y_label=rep(0, length(differences))
+choose_label=cbind(y_label_below, y_label_above, differences, y_label)
+y_label=sapply(1:nrow(choose_label), function(x,y) if(y[x,3]>=0){y[x,4]=y[x,2]}else{y[x,4]=y[x,1]}, y=choose_label)
+y_label=data_frame(y_label)
+y_label=y_label %>% mutate(chapter=row_number())
+percents_4=inner_join(percents_4, y_label)
+
+ggplot(percents_4, aes(x=chapter, y=n, label=n))+
+  geom_line()+
+  geom_point(size=1, shape=21, fill='white')+
+  geom_text(aes(y=y_label, label=n), vjust=1.5, color='black')
 
 #(5) Word count for each book
 word_count<-cs_book %>% dplyr::summarise(total_words=n())
+
+
+#(6) Individual Question
+beasts<-c('Acromantula'
+,'Ashwinder' 
+,'Augurey' 
+,'Basilisk' 
+,'Billywig'
+,'Bowtruckle'
+,'Bundimun'
+,'Centaur'
+,'Chimaera'
+,'Chizpurfle'
+,'Clabbert'
+,'Crup'
+,'Demiguise'
+,'Diricawl'
+,'Doxy'
+,'Dragon'
+,'Opaleye'
+,'Fireball'
+,'Hebridean'
+,'Horntail'
+,'Ridgeback'
+,'Vipertooth'
+,'Longhorn'
+,'Short-Snout'
+,'Ironbelly'
+,'Dugbog'
+,'Erkling'
+,'Erumpent'
+,'Fairy'
+,'Crab'
+,'Flobberworm'
+,'Fwooper'
+,'Ghoul'
+,'Glumbumble'
+,'Gnome'
+,'Graphorn'
+,'Griffin'
+,'Grindylow'
+,'Hidebehind'
+,'Hippocampus'
+,'Hippogriff'
+,'Hodag'
+,'Horklump'
+,'Imp'
+,'Jarvey'
+,'Jobberknoll'
+,'Kappa'
+,'Kelpie'
+,'Knarl'
+,'Kneazle'
+,'Leprechaun'
+,'Lethifold'
+,'Lobalug'
+,'Malaclaw'
+,'Manticore'
+,'Merpeople'
+,'Moke'
+,'Mooncalf'
+,'Murtlap'
+,'Niffler'
+,'Nogtail'
+,'Nundu'
+,'Occamy'
+,'Phoenix'
+,'Pixie'
+,'Plimpy'
+,'Pogrebin'
+,'Porlock'
+,'Puffskein'
+,'Quintaped'
+,'Ramora'
+,'Red Cap'
+,'Reem'
+,'Runespoor'
+,'Salamander'
+,'Serpent'
+,'Shrake'
+,'Snallygaster'
+,'Snidget'
+,'Sphinx'
+,'Streeler'
+,'Tebo'
+,'Thunderbird'
+,'Troll'
+,'Unicorn'
+,'Wampus'
+,'Werewolf'
+,'Winged horse'
+,'Yeti')
+beasts=data_frame(word=beasts, beasts=beasts)
+
+hpbeasts<-lapply(1:7, function(x) inner_join(books[[x]], beasts))
+hpbeasts<-bind_rows(hpbeasts)
+hpbeasts <- hpbeasts %>% dplyr::group_by(title) %>% dplyr::count(beasts) %>% dplyr:: mutate(total_words=sum(n), percent=n/total_words, y_label=cumsum(percent))
+
+ggplot(hpbeasts, aes(x = beasts, y = n)) +
+  geom_bar(stat='identity', aes(fill=title))+
+  theme(axis.text.x = element_text(size=.00005)) +
+  coord_flip()
+ 
 
 ```
 
