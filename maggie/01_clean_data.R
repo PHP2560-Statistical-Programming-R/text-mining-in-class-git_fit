@@ -32,7 +32,6 @@ for(i in 1:length(books)){
 # make one data frame from list of data frames
 books <- plyr::ldply(books, data.frame)
 
-# remove stop words
-books_no_stop <- anti_join(books_raw, stop_words)
 
-
+dir.create("./maggie/data/", showWarnings = FALSE)
+write.csv(books, "./maggie/data/books.csv")
