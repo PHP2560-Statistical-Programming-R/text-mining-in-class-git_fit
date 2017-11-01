@@ -99,17 +99,18 @@ series
 ```{r}
 #select book6 (half-blood prince from series)
 Book6 <- series %>%
-  filter (book == "half_blood_prince") %>% 
+  filter (book == "half_blood_prince")
+
+Book6Senti <- Book6 %>%
        #using "afin" to get the sentiment value of each word
        inner_join(get_sentiments("afin")) %>%
        #group by chapter
        group_by(chapter) %>%
        #calculate the sum of sentiment over every chapter
        summarise(n=sum(score))
-Book6
 
-p1 <- ggplot(Book6, aes(x=chapter, y=n))+
-      geom_line(show.legend = FALSE, size = 0.5, color = "blue") +
+p1 <- ggplot(Book6Senti, aes(x=chapter, y=n))+
+      geom_line(show.legend = FALSE, size = 0.4, color = "blue") +
       scale_color_brewer(palette = "Set1") +
       geom_smooth(se=FALSE, size = 0.4, linetype = 1, color = "green") +
       geom_point(color="blue", size = 1)
@@ -131,16 +132,15 @@ p1 + theme(panel.grid.major = element_blank(),
 
 
 ```{r}
-Book6 <- series %>%
-  filter (book == "half_blood_prince") %>% 
-       inner_join(get_sentiments("bing")) %>%
-       group_by(sentiment) %>%
+Book6Bing <- Book6 %>%
+      inner_join(get_sentiments("bing")) %>%
+      group_by(sentiment) %>%
       ungroup() %>%
   group_by(chapter) %>%
   count(sentiment, chapter)
   
 
-p1 <- ggplot(Book6, aes(x=chapter, y=n, color = sentiment)) +
+p1 <- ggplot(Book6Bing, aes(x=chapter, y=n, color = sentiment)) +
       geom_line(show.legend = FALSE, size = 0.3) +
       scale_color_brewer(palette = "Set1") +
       geom_smooth(se=FALSE, size = 0.2, linetype = 4)
@@ -154,11 +154,11 @@ scale_x_continuous(
 
 ```
 
-(2) WHat are the most common words by chapter
+(2) What are the most common words by chapter?
 ```{r}
-Book6Word <- series %>%
-  filter(book == "half_blood_prince") %>%
+Book6Word <- Book6 %>%
   group_by(chapter)  %>%
+  #remove stop words
   anti_join(stop_words) %>%
   count(word, chapter) %>%
   top_n(1)
@@ -169,11 +169,10 @@ Book6Word
 (3) Which characters appear the most 
 ```{r}
 library(dplyr)
-Book6Char <- series %>%
-         filter(book == "half_blood_prince")  %>%
-         group_by(word) %>%
-         select(word) %>%
-         filter(word == "harry" | 
+Book6Char <- Book6  %>%
+             group_by(word) %>%
+             select(word) %>%
+             filter(word == "harry" | 
                 word == "ron" | 
                 word == "hermione" | 
                 word == "dumbledore" |
@@ -184,14 +183,19 @@ Book6Char <- series %>%
            
 Book6Char 
 
-ggplot(Book6Char, aes(x=word, y=n)) +
+p2 <- ggplot(Book6Char, aes(x=word, y=n)) +
 geom_col(show.legend = FALSE, fill = "lightblue", width  = 0.5)
+
+p2 +  theme(panel.grid.major = element_blank(), 
+           panel.grid.minor = element_blank(),
+           panel.background = element_blank(),
+           axis.line = element_line(colour = "black"), 
+           plot.title = element_text(hjust = 0.5) )
 ```
 
 (4) How the emotion anticipation changes throughtout the book
 ```{r}
-Book6Anti <- series %>%
-  filter (book == "half_blood_prince") %>% 
+Book6Anti <- Book6 %>% 
        inner_join(get_sentiments("nrc"))  %>%
        group_by(chapter) %>%
        count (sentiment) %>%
@@ -199,9 +203,22 @@ Book6Anti <- series %>%
         
 Book6Anti
 
-ggplot(Book6Anti, aes(x=chapter, y=n)) +
-geom_col(show.legend = FALSE, fill = "blue", width  = 0.5)
+p4 <- ggplot(Book6Anti, aes(x=chapter, y=n)) +
+      geom_col(show.legend = FALSE, 
+               fill = "blue", 
+               width  = 0.5)
 
+p4 + theme(panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(),
+            panel.background = element_blank(),
+            axis.line = element_line(colour = "black"), 
+            plot.title = element_text(hjust = 0.5) ) + 
+     xlim(0, 30) +
+            scale_x_continuous(breaks = c(1:30)) +
+     ylim(0, 180) +
+            scale_y_continuous(breaks = c(seq(0,180,by=20))) +
+     ggtitle("Change of Emtion Anticipation in Half-Blood Prince") +
+     labs(x="Chapter",y="Times of Anticipation")
 
 ```
 
@@ -215,7 +232,7 @@ nrow(Book6Count)
 ```
 
 
-(6) Building wordcloud
+(6) Graphing the most popular words in this book using wordcloud
 
 ```{r}
 library(plyr)
@@ -225,19 +242,18 @@ library(stringr)
 library(ggplot2)
 install.packages("wordcloud")
 library(wordcloud)
-library(dplyr)
 
-p2 <- series %>%
+
+p6 <- series %>%
   anti_join(stop_words) %>%
   count(word) %>%
   with(wordcloud(word, n, max.words = 100)) 
 
-p2
 
 
 ```
 
-(7) Plotting different colors for the most positive and negative words in Book6
+(7) Graphing the most popular positive and negative words 
 ```{r}
 library(reshape2)
 library(wordcloud)
@@ -253,21 +269,32 @@ series %>%
 
 (8) examine pairs of two consecutive words
 ```{r}
-titles <- c("philosophers_stone", "chamber_of_secrets", "prisoner_of_azkaban", "goblet_of_fire", "order_of_the_phoenix", "half_blood_prince", "deathly_hallows")
 
-books <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban,
-           goblet_of_fire, order_of_the_phoenix, half_blood_prince,
-           deathly_hallows)
+titles <- c("philosophers_stone", 
+            "chamber_of_secrets", 
+            "prisoner_of_azkaban", 
+            "goblet_of_fire", 
+            "order_of_the_phoenix", 
+            "half_blood_prince", 
+            "deathly_hallows")
+
+books <- list(philosophers_stone, 
+              chamber_of_secrets, 
+              prisoner_of_azkaban,
+              goblet_of_fire, 
+              order_of_the_phoenix, 
+              half_blood_prince,
+              deathly_hallows)
   
-hp_bigrams<- tibble()
+hp_bigrams <- tibble()
 
 for(i in seq_along(titles)) {
         
         clean <- tibble(chapter = seq_along(books[[i]]),
                         text = books[[i]]) %>%
-             unnest_tokens(bigram, text, token = "ngrams", n = 2) %>%
-             mutate(book = titles[i]) %>%
-             select(book, everything())
+                 unnest_tokens(bigram, text, token = "ngrams", n = 2) %>%
+                 mutate(book = titles[i]) %>%
+                 select(book, everything())
 
         hp_bigrams <- rbind(hp_bigrams, clean)
 }
@@ -278,7 +305,7 @@ Book6bi <- hp_bigrams%>%
 Book6bi
 ```
 
-(9) count the most common bigrams and delete the stop_words
+(9) 
 ```{r}
 library(tidyr)
 
@@ -313,22 +340,22 @@ contribution <- not_words %>%
 
 contribution
 
-realresult <- merge(newdata, Book6, by="chapter") %>%
+realresult <- merge(contribution, Book6Senti, by="chapter") %>%
   mutate(n= (n.x + n.y))
 
 x <- realresult %>%
-  select(chapter, n.y, n)
+  select(chapter, n, n.y)
 
-p2 <- ggplot(x, aes(x= chapter)) + 
-  geom_line(aes(y = n.y, colour = "red")) + 
-  geom_line(aes(y = n, colour = "blue"))
+p2 <- ggplot(x, aes(x = chapter)) + 
+  geom_line(aes(y = n.y, color = 'red')) + 
+  geom_line(aes(y = n, color = 'green'))
 
 p2+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-panel.background = element_blank(),axis.line = element_line(colour = "black"), plot.title = element_text(hjust = 0.5))+
+panel.background = element_blank(),axis.line = element_line(color = "black"), plot.title = element_text(hjust = 0.5))+
  xlim(1, 30) +
 scale_x_continuous(
   breaks = c(1:30)) +
-  geom_hline(yintercept = 0, color = "red") +
+  geom_hline(yintercept = 0, color = 'blue') +
  ylim(-250, 250) +
   scale_y_continuous(
     breaks = c(seq(-250,250,by=50)) 
@@ -336,5 +363,51 @@ scale_x_continuous(
   ggtitle("Change in Sentiment of Half-Blood Prince After Adjustment ")
 
 
+```
+
+```{r,fig.width = 24, fig.height = 24}
+install.packages("igraph")
+install.packages("ggraph")
+library(igraph)
+library(ggraph)
+library(dplyr)
+
+bigram_counts <- bigrams_filtered %>% 
+  count(word1, word2, sort = TRUE)
+
+bigram_graph <- bigram_counts %>%
+  filter(n > 3) %>%
+  graph_from_data_frame()
+
+
+set.seed(2017)
+
+ggraph(bigram_graph, layout = "fr") +
+  geom_edge_link() +
+  geom_node_point() +
+  geom_node_text(aes(label = name), vjust = 1, hjust = 1)
+```
+```{r,fig.width = 24, fig.height = 24}
+set.seed(2016)
+
+a <- grid::arrow(type = "closed", length = unit(.15, "inches"))
+
+ggraph(bigram_graph, layout = "fr") +
+  geom_edge_link(aes(edge_alpha = n), show.legend = FALSE,
+                 arrow = a, end_cap = circle(.07, 'inches')) +
+  geom_node_point(color = "lightblue", size = 5) +
+  geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
+  theme_void()
+```
+```{r}
+library(tidytext)
+n <- bigrams_filtered %>%
+  filter(word1 == "harry" | word2 == "harry")  
+  
+newtibble <- n [,1:3]
+colnames(newtibble) <- c("book", "chapter", "word")
+nnn<- newtibble %>%
+        inner_join(get_sentiments("afin"))
+nnn
 ```
 
