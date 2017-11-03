@@ -1,7 +1,7 @@
-setwd("Joyce Elias Makefile")
+
 source("check_packages.R") 
 check_packages(c("tidytext","dplyr","ggplot2","rebus", "devtools","harrypotter")) # this checks the person's computer for these packages. If the person doesn't have them then it will download them for them.
-dir.create("clean data/", showWarnings = FALSE)
+
 
 
 
@@ -25,4 +25,7 @@ for(i in 1:length(books)){
 }
 
 books <- plyr:: ldply(books, data.frame)  # make into a data frame
+
+dir.create("clean data/", showWarnings = FALSE)
+save(books, file="clean data/books.rda")
 
