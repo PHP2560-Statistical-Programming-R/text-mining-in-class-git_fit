@@ -11,4 +11,4 @@ book_title <- "deathly_hallows"
 # run all scripts
 source("./maggie/01_clean_data.R")   # get & clean data
 source("./maggie/02_analyze_data.R")    # analyze data and create plots
-rmarkdown::render("paper.Rmd", output_format = "html_document")
+rmarkdown::render("./maggie/paper.Rmd", output_format = "html_document")
