@@ -36,3 +36,46 @@ books <- plyr::ldply(books, data.frame)
 
 dir.create("./maggie/data/", showWarnings = FALSE)
 save(books, file = "./maggie/data/books.Rda")
+
+
+
+
+# create data keeping case
+books_upper <- vector(mode = "list", length = 7)
+for(i in 1:length(books_upper)){
+  # convert text to dataframe
+  data <- data_frame(text = book_names[[i]])
+  # add column for chapter numbers and title of book
+  data <- mutate(data, chapter = c(1:nrow(data)), title = names(book_names)[i])
+  # split by word 
+  data <- data %>%
+    unnest_tokens(word, text, to_lower = FALSE, collapse = TRUE)
+  # store clean data to list
+  books_upper[[i]] <- data
+}
+# make one data frame from list of data frames
+books_upper <- plyr::ldply(books_upper, data.frame)
+
+save(books_upper, file = "./maggie/data/books_upper.Rda")
+
+
+
+
+# create data split by sentence
+books_sentences <- vector(mode = "list", length = 7)
+for(i in 1:length(books_sentences)){
+  # convert text to dataframe
+  data <- data_frame(text = book_names[[i]])
+  # add column for chapter numbers and title of book
+  data <- mutate(data, chapter = c(1:nrow(data)), title = names(book_names)[i])
+  # split by word and remove punctuation
+  data <- data %>%
+    unnest_tokens(sentence, text, token = "sentences")
+  # store clean data to list
+  books_sentences[[i]] <- data
+}
+
+# make one data frame from list of data frames
+books_sentences <- plyr::ldply(books_sentences, data.frame)
+books_sentences$sentence <- str_replace_all(books_sentences$sentence, "[:punct:]", "")
+save(books_sentences, file = "./maggie/data/books_sentences.Rda")
