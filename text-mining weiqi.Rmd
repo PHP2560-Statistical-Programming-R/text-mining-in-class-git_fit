@@ -108,6 +108,7 @@ Book6Senti <- Book6 %>%
        group_by(chapter) %>%
        #calculate the sum of sentiment over every chapter
        summarise(n=sum(score))
+Book6Senti
 
 p1 <- ggplot(Book6Senti, aes(x=chapter, y=n))+
       geom_line(show.legend = FALSE, size = 0.4, color = "blue") +
@@ -226,7 +227,7 @@ p4 + theme(panel.grid.major = element_blank(),
 (5) Word count for each book
 ```{r}
 Book6Count <- series %>%
-  filter(book == "order_of_the_phoenix") %>%
+  filter(book == "half_blood_prince") %>%
   group_by(chapter) 
 nrow(Book6Count)
 ```
@@ -242,12 +243,11 @@ library(stringr)
 library(ggplot2)
 install.packages("wordcloud")
 library(wordcloud)
-
-
+colorPalette="Dark2"
 p6 <- series %>%
   anti_join(stop_words) %>%
   count(word) %>%
-  with(wordcloud(word, n, max.words = 100)) 
+  with(wordcloud(word, n, max.words = 100, random.color = FALSE, colors= c("indianred2","indianred4","indianred6","indianred")))
 
 
 
@@ -302,7 +302,9 @@ for(i in seq_along(titles)) {
 
 Book6bi <- hp_bigrams%>%
   filter (book == "half_blood_prince")
-Book6bi
+
+
+
 ```
 
 (9) 
@@ -347,22 +349,30 @@ x <- realresult %>%
   select(chapter, n, n.y)
 
 p2 <- ggplot(x, aes(x = chapter)) + 
-  geom_line(aes(y = n.y, color = 'red')) + 
-  geom_line(aes(y = n, color = 'green'))
+  geom_line(aes(y = n.y, color = 'original')) + 
+  geom_line(aes(y = n, color = 'adjusted'))
 
 p2+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
 panel.background = element_blank(),axis.line = element_line(color = "black"), plot.title = element_text(hjust = 0.5))+
- xlim(1, 30) +
 scale_x_continuous(
   breaks = c(1:30)) +
   geom_hline(yintercept = 0, color = 'blue') +
- ylim(-250, 250) +
-  scale_y_continuous(
+scale_y_continuous(
     breaks = c(seq(-250,250,by=50)) 
   )+ 
   ggtitle("Change in Sentiment of Half-Blood Prince After Adjustment ")
 
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ")
 
+order <- bigrams_united %>%
+  group_by(chapter) %>%
+  count(bigram, chapter) %>%
+  top_n(1)
+order
+
+fit <- aov(n ~ n.y, data=realresult)
+fit
 ```
 
 ```{r,fig.width = 24, fig.height = 24}
@@ -376,7 +386,7 @@ bigram_counts <- bigrams_filtered %>%
   count(word1, word2, sort = TRUE)
 
 bigram_graph <- bigram_counts %>%
-  filter(n > 3) %>%
+  filter(n > ) %>%
   graph_from_data_frame()
 
 

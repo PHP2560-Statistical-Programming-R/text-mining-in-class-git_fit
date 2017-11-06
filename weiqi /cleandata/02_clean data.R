@@ -1,8 +1,3 @@
-library("harrypotter")
-
-dir.create("data/", showWarnings = FALSE)
-
-#clean the data
 #make a vector which contains the titles of the 7 books
 titles <- c("philosophers_stone", 
             "chamber_of_secrets", 
@@ -22,6 +17,7 @@ books <- list(philosophers_stone,
               deathly_hallows)
 
 #create an empty tibble   
+
 series <- tibble()
 
 #run a full loop to make the seven books into one-token-per-row structure.
@@ -34,12 +30,14 @@ for(i in seq_along(titles)) {
     mutate(book = titles[i]) %>%
     #select the columns book and the remaining columns 
     select(book, everything())
+  
   #combine the empty tibble and clean,
   series <- rbind(series, clean)
 }
 
+
 Book6 <- series %>%
   filter (book == "half_blood_prince")
 
-write.csv(Book6, file = "Data.csv")
-
+save(series, file = "data/rawdata/HP.Rda")
+save(Book6, file = "data/rawdata/HP6.Rda")
