@@ -137,6 +137,7 @@ affin_lex<-
  It can be seen here that JK rowling changes the sentiment's of her chapters quickly. This would make sense, seeing as the books are known for being emotion inducing. It can be seen that from the onset, JK rowling's language quickly becomes negative as she sets up the books, and then works on building up positive sentiments towards the middle of the book . However, as can be seen, the sentiment takes a nose dive in chapter 15, perhaps indicating the book ends on an uncertain/ negative note.
  
 
+
 # For this part I want to see the most common words of the whole book and then the most common words by chapter.
 
 

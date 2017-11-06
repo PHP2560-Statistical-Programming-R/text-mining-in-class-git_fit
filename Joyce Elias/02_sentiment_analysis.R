@@ -181,3 +181,4 @@ ggplot(sentiment_contribution,aes(x=word,y=contribution))+
   coord_flip()+
   ggtitle("Most Commons Words in Each Chapter")
 dev.off()
+

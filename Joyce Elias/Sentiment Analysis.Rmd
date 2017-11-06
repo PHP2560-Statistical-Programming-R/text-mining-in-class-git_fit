@@ -1,0 +1,18 @@
+---
+title: "Sentiment Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Sentiment Analysis In the Philosopher's Stone
+
+###I want to first start by looking at the sentiment content in the very first book that she wrote : Philosophers stone
+```{r}
+load("clean data/books.rda")
+
+load("graph/plot1.png")
+```
+

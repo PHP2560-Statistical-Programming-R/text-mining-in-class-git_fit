@@ -1,12 +1,12 @@
 
-source("check_packages.R") 
-check_packages(c("tidytext","dplyr","ggplot2","rebus", "devtools","harrypotter")) # this checks the person's computer for these packages. If the person doesn't have them then it will download them for them.
+source("check_package.R") 
+check_package(c("tidytext","dplyr","ggplot2","rebus", "devtools","harrypotter")) # this checks the person's computer for these packages. If the person doesn't have them then it will download them for them.
 
 
 
 
 devtools::install_github("bradleyboehmke/harrypotter")  # This pulls all 7 of the harry potter books
-
+dir.create("clean data/", showWarnings = FALSE)
 
 # Begin to Clean the Data and Compile all 7 books into one dataset.
 
@@ -26,6 +26,6 @@ for(i in 1:length(books)){
 
 books <- plyr:: ldply(books, data.frame)  # make into a data frame
 
-dir.create("clean data/", showWarnings = FALSE)
+
 save(books, file="clean data/books.rda")
 
