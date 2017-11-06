@@ -2,23 +2,27 @@ load("Julia/data/books.Rda")
 #Q1:How the sentiment changes across the entire book
 HP_Q1<-function(){
   sentiments<- books%>%
+    #filter for book in the series
     filter (title == "order_of_the_phoenix") %>% 
+    #join using the lexicon afinn
     inner_join(get_sentiments("afinn")) %>%
+    #group by chapter
     group_by(chapter) %>%
+    #count the sentiment by summing the score of each word
     summarise(n= sum(score))
   sentiments
   
-  p1 <- ggplot(sentiments, aes(x=chapter, y=n)) +
-    geom_line(show.legend = FALSE, size = 0.3) +
-    scale_color_brewer(palette = "Set1") +
-    geom_smooth(se=FALSE, size = 0.2, linetype = 4)
+  p1 <- ggplot(sentiments, aes(x=chapter, y=n)) + # I am making a plot that fills in the chapter with the score count
+    geom_line(show.legend = FALSE, size = 0.3) + #this makes a line and excludes the legend
+    scale_color_brewer(palette = "Set1") + #selects the color of the scale
+    geom_smooth(se=FALSE, size = 0.2, linetype = 4) #selects the type of line for the graph we want
   
   p1+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
             panel.background = element_blank(),axis.line = element_line(colour = "black") )+
     xlim(1, 38) +
     scale_x_continuous(
-      breaks = c(1:38)) +
-    geom_hline(yintercept = 0)+
+      breaks = c(1:38)) + #create breaks for each chapter
+    geom_hline(yintercept = 0)+ #create a y-intercept at 0 in order to help depict negative values better
   ggsave('Julia/graph/HP_Q1.png')
 }
 HP_Q1()
@@ -94,6 +98,7 @@ for(i in 1:length(books)){
 books <- plyr::ldply(books, data.frame)
 
 most.char <- 
+  #filter for book in the series
   filter(books, title=="order_of_the_phoenix") %>%
   select(word) %>% 
   # regular expression for character names
