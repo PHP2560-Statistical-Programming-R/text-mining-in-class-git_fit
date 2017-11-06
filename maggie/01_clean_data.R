@@ -1,5 +1,5 @@
 source("./maggie/check_packages.R")
-check_packages(c("devtools","dplyr","plyr","stringr", "tidytext"))
+check_packages(c("devtools","dplyr","plyr","stringr", "tidytext", "rebus", "ggplot2"))
 
 # get data
 devtools::install_github("bradleyboehmke/harrypotter")
@@ -10,6 +10,7 @@ library(dplyr)
 library(tidytext)
 library(stringr)
 library(ggplot2)
+library(rebus)
 
 # create vector of book names
 book_names <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban, goblet_of_fire, order_of_the_phoenix, half_blood_prince, deathly_hallows)
@@ -34,4 +35,4 @@ books <- plyr::ldply(books, data.frame)
 
 
 dir.create("./maggie/data/", showWarnings = FALSE)
-write.csv(books, "./maggie/data/books.csv")
+save(books, file = "./maggie/data/books.Rda")
