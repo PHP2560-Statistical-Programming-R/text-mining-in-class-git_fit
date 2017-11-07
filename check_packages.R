@@ -7,4 +7,8 @@ check_packages = function(names)
     
     library(name, character.only=TRUE)
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 8a557eee0691aefd47967e4b8014db84d797f253
