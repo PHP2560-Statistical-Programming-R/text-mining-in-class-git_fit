@@ -70,7 +70,7 @@ load("Carol/cleandata/q6.Rda")
 ggplot(q6, aes(x = beasts, y = n)) +
   geom_bar(stat='identity', aes(fill=Title))+ #stacked bars by title
   theme(axis.text.x = element_text(size=.00005)) + #reformat the size of text for x-axis
-  ggtitle("Fantastic Beasts in Happy Potter Series")+
+  ggtitle("Fantastic Beasts in Harry Potter Series")+
   ylab("Number of Times Mentioned") + 
   xlab("Beasts")+
   theme(plot.title = element_text(hjust = 0.5))+
