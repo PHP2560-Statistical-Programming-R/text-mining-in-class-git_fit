@@ -9,7 +9,12 @@ devtools::install_github("bradleyboehmke/harrypotter")  # This pulls all 7 of th
 #Create directory, if it already exists then dont show warnings.
 # This eliminates the need for setwd
 # you can run my code and it will create these files whereever you store this data in
-dir.create("clean data/", showWarnings = FALSE) 
+
+dir.create("./Joyce Elias/clean data/", showWarnings = FALSE) 
+
+
+
+
 
 #### Begin to Clean the Data and Compile all 7 books into one dataset.####
 
