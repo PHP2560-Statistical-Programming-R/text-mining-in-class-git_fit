@@ -213,10 +213,8 @@ p4 + theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             panel.background = element_blank(),
             axis.line = element_line(colour = "black"), 
-            plot.title = element_text(hjust = 0.5) ) + 
-     xlim(0, 30) +
+            plot.title = element_text(hjust = 0.5) ) +
             scale_x_continuous(breaks = c(1:30)) +
-     ylim(0, 180) +
             scale_y_continuous(breaks = c(seq(0,180,by=20))) +
      ggtitle("Change of Emtion Anticipation in Half-Blood Prince") +
      labs(x="Chapter",y="Times of Anticipation")
@@ -312,7 +310,7 @@ Book6bi <- hp_bigrams%>%
 library(tidyr)
 
 #split bigram into two columns, which are word1 and word2
-bigrams_separated <- Book6bi %>%
+bigrams_separated <- Book6bigrams %>%
   separate(bigram, c("word1", "word2"), sep = " ")
 
 #remove cases where either is a stop-word
@@ -371,6 +369,7 @@ order <- bigrams_united %>%
   top_n(1)
 order
 
+realresult
 fit <- aov(n ~ n.y, data=realresult)
 fit
 ```
@@ -386,7 +385,7 @@ bigram_counts <- bigrams_filtered %>%
   count(word1, word2, sort = TRUE)
 
 bigram_graph <- bigram_counts %>%
-  filter(n > ) %>%
+  filter(n > 3) %>%
   graph_from_data_frame()
 
 

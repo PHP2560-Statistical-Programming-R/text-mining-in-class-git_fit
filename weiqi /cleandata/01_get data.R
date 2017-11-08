@@ -1,6 +1,6 @@
 ## This function takes the packages that our program needs. 
 ## It makes sure you have them on your computer before proceeding.
-source("check_packages.r")
+source("cleandata/check_packages.r")
 check_packages(c("plyr",
                  "dplyr",
                  "igraph",
@@ -8,7 +8,8 @@ check_packages(c("plyr",
                  "devtools",
                  "tidytext",
                  "reshape2",
-                 "wordcloud"))
+                 "wordcloud",
+                 "tidyr"))
 
 dir.create("data/", showWarnings = FALSE)
 dir.create("graph/", showWarnings = FALSE)

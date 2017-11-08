@@ -7,6 +7,5 @@ Book6Word <- Book6 %>%
   count(word, chapter) %>%
   top_n(1)
 
-
 save (Book6Word, file = "data/modifieddata/HP6Top.Rda")
 
