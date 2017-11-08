@@ -1,6 +1,6 @@
 ## This script tracks the negative and positive sentiment across one book in the harry potter series, in 2 ways. The first way is to use the bing lexicon and the second way is the afin lexicon
-load("clean data/books.rda")
-dir.create("graph/", showWarnings = FALSE) # this creates a directory to store my results in 
+load("Joyce Elias/clean data/books.rda")
+dir.create("./Joyce Elias/graph/", showWarnings = FALSE) # this creates a directory to store my results in 
 
 
 book_count= 
@@ -11,11 +11,13 @@ book_count=
   dplyr::  count(chapter,sentiment) %>% #I want to the count the sentiment based on chapter
   mutate(total_words=sum(n),prop=n/total_words)  # what proportion of the total words are positive and negative in each chapter
 
-png('graph/plot1.png') 
+png('./Joyce Elias/graph/plot1.png') 
+print(
   ggplot(book_count,aes(x = chapter, y = prop, col = as.factor(sentiment)))  +
     geom_line()+   # plotting the sentiment over each chapter in the book
     ggtitle("Tracking Positive and Negative Sentiment Across the Philosopher's Stone") +
     labs(y="proportion of total words") 
+)
 dev.off()
 
 
@@ -24,12 +26,13 @@ sentiment_prop<-
   group_by(chapter) %>%
   mutate(total_words=sum(n),prop=n/total_words)  # what proportion of the total words are positive and negative in each chapter
 
-png('graph/plot2.png')
+png('./Joyce Elias/graph/plot2.png')
+print(
 ggplot(sentiment_prop, aes(x = chapter, y = prop, col = as.factor(sentiment))) +
   geom_line()+   # plotting the sentiment over each chapter in the book
   ggtitle("Tracking Positive and Negative Sentiment Across the Philosopher's Stone") +
   labs(y="proportion of total words")
-
+)
 dev.off()
 
 #I can also use a different lexicon that assings a score rather than saying positive and negative. Affin lexicon 
@@ -42,12 +45,14 @@ affin_lex<-
   summarize(total_score=sum(score)) # what is the total score for each chapter. Do some chapters tend to be more positive than negative
 
 
-png('graph/plot2.png')
+png('./Joyce Elias/graph/plot2.png')
+print(
 ggplot(affin_lex, aes(x = chapter, y = total_score)) +
   geom_line(col="blue1")+   # plotting the sentiment over each chapter in the book based on score
   geom_hline(aes(yintercept=0),color="darkorchid4",linetype="dashed")+
   ggtitle("Tracking Sentiment Across The Philosopher's Stone") +
   labs(y="score")
+)
 dev.off()
 
 
@@ -66,13 +71,14 @@ nrc_lex %>%
   count(word,sort=TRUE)%>%
   top_n(2)   # Since I grouped the data by chapter, top_n lets me see the top x # of words for each chapter. For example top_n(5) means I will see the top 5 words in each chapter. 
   
-png('graph/plot3.png')
+png('./Joyce Elias/graph/plot3.png')
+print(
   ggplot(sentiment_by_chapter,aes(x=word,y=n))+
   geom_col(stat="identity",fill="coral1")+
   coord_flip()+
   ggtitle("Most Common Words in the Philosopher's Stone")+
   labs(y="count")
-  
+) 
 dev.off()
 
 #I can also make this graph for each chapter.
@@ -82,13 +88,15 @@ nrc_lex %>%
   count(word)%>% # I count the number of times the word appears in the book
   top_n(10)  # I then select the top 10 words for each sentiment
   
-png('graph/plot4.png')  
+png('./Joyce Elias/graph/plot4.png')  
+print(
   ggplot(top10,aes(word,n,fill=chapter))+ # I am making a plot that fills in the bar with the sentiment
   geom_col(show.legend=FALSE)+ # this makes columns and excludes the legend
   ggtitle("Top Ten Words in Each Chapter of The Philosopher's Stone")+
   labs(y="count")+
   facet_wrap(~chapter,scales="free")+ # this feature tells R to make this graph for each sentiment
   coord_flip() # flip the x and y axis
+)
 dev.off()
 
 # Next I would like to look at the most popular characters in the first harry potter book.
@@ -101,13 +109,15 @@ characters<-
   summarise(count=n()) %>%
   top_n(10)
 
-png('graph/plot5.png')  
+png('./Joyce Elias/graph/plot5.png')  
+print(
 ggplot(characters,aes(x=word,y=count))+
   geom_col(fill="salmon") +
   ggtitle("Most Popular Characters in the Philosopher's Stone") +
   labs(x="Characters") +
   geom_text(aes(label=paste0(count)),nudge_y=1) +
   coord_flip()
+)
 dev.off()
 
 # For this next part I would like to see how the anticipation changes throughout the book. JK rowling is known for how she strings the reader along and how she infuses anxiety into her text. We will examine this here using the NRC lexicon 
@@ -119,11 +129,13 @@ nrc_look=
   group_by(chapter) %>%
   count(sentiment)
 
-png('graph/plot6.png')
+png('./Joyce Elias/graph/plot6.png')
+print(
 ggplot(nrc_look,aes(x=chapter, y=n))+ 
   geom_col(stat="identity",fill="gold3")+
   ggtitle("The number of Anticipation words by Chapter")+
   labs(y="count")
+)
 dev.off()
 
 #Another way of tracking anticipation would be to look at the proportion of words which have an anticipation sentiment rather than looking at the raw usage of the words :
@@ -139,11 +151,13 @@ total_words=
   filter(sentiment=="anticipation") %>%
   mutate(proportion= word_occurence/total_words) 
 
-png('graph/plot7.png')
+png('./Joyce Elias/graph/plot7.png')
+print(
 ggplot(total_words,aes(x=chapter,y=proportion))+
   geom_line(col="deeppink3")+
   ggtitle("Tracking the Anticipation sentiment in Philosopher's Stone")+
   labs(y="Proportion of Anticipation Words")
+)
 dev.off()
 
 #For my own personal analysis I want to look at a variety of aspects in the first harry potter book.
@@ -154,13 +168,15 @@ nrc_lex %>%
   count(word)%>% # I count the number of times the word appears in the book
   top_n(10)  # I then select the top 10 words for each sentiment
   
-png('graph/plot8.png')  
+png('./Joyce Elias/graph/plot8.png')  
+print(
   ggplot(sentiment,aes(word,n,fill=sentiment))+ # I am making a plot that fills in the bar with the sentiment
   geom_col(show.legend=FALSE)+ # this makes columns and excludes the legend
   facet_wrap(~sentiment,scales="free")+ # this feature tells R to make this graph for each sentiment
   ggtitle("Word Contribution by Sentiment")+
   coord_flip()+ # flip the x and y axis
   labs(y="count")
+)
 dev.off()
 
 ## I would like to see the contribution that each sentiment makes based on the afinn lexicon
@@ -174,11 +190,14 @@ sentiment_contribution<-
   ungroup%>%
   mutate(word = reorder(word, n))
 
-png('graph/plot9.png')
+png('./Joyce Elias/graph/plot9.png')
+print(
 ggplot(sentiment_contribution,aes(x=word,y=contribution))+
   geom_col(show.legend=FALSE,fill="darkseagreen2") +
   facet_wrap(~chapter,scales="free")+  # I facet wrapped based on chapter so I could see the top 10 words in each chapter and the corresponding contribution
   coord_flip()+
   ggtitle("Most Commons Words in Each Chapter")
+)
+
 dev.off()
 

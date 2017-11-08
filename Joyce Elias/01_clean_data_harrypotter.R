@@ -1,14 +1,17 @@
 
-source("check_package.R") 
-check_package(c("tidytext","dplyr","ggplot2","rebus", "devtools","harrypotter")) # this checks the person's computer for these packages. If the person doesn't have them then it will download them for them.
+source("check_packages.R") 
+check_packages(c("tidytext","dplyr","ggplot2","rebus", "devtools","harrypotter","tidyr","gridExtra")) # this checks the person's computer for these packages. If the person doesn't have them then it will download them for them.
 
 
 
 
 devtools::install_github("bradleyboehmke/harrypotter")  # This pulls all 7 of the harry potter books
-dir.create("clean data/", showWarnings = FALSE)
+#Create directory, if it already exists then dont show warnings.
+# This eliminates the need for setwd
+# you can run my code and it will create these files whereever you store this data in
+dir.create("clean data/", showWarnings = FALSE) 
 
-# Begin to Clean the Data and Compile all 7 books into one dataset.
+#### Begin to Clean the Data and Compile all 7 books into one dataset.####
 
 book_names <- list(philosophers_stone, chamber_of_secrets, prisoner_of_azkaban, goblet_of_fire, order_of_the_phoenix, half_blood_prince, deathly_hallows) # make a list of all the book names 
 
@@ -27,5 +30,5 @@ for(i in 1:length(books)){
 books <- plyr:: ldply(books, data.frame)  # make into a data frame
 
 
-save(books, file="clean data/books.rda")
+save(books, file="Joyce Elias/clean data/books.rda")
 
